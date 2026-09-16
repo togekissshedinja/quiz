@@ -1,0 +1,2378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pokétype Personality Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0f0c22;
+    --bg-panel:#181433;
+    --bg-panel-2:#1d1840;
+    --line:#2c2555;
+    --text:#f1eefc;
+    --text-muted:#a099c4;
+    --gold:#e8b84b;
+    --gold-dim:#a3833a;
+    --glow-1: rgba(232,184,75,0.07);
+    --glow-2: rgba(120,90,220,0.15);
+    --card-border: var(--line);
+    --card-tint: rgba(232,184,75,0.05);
+    --avatar-glow: rgba(232,184,75,0.45);
+    --button-text:#181433;
+  }
+  html.light-mode{
+    --bg:#f5f2fa;
+    --bg-panel:#ffffff;
+    --bg-panel-2:#f2eef8;
+    --line:#ddd6ea;
+    --text:#211a3d;
+    --text-muted:#6b6285;
+    --button-text:#ffffff;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 15% 8%, var(--glow-1), transparent 60%),
+      radial-gradient(circle at 85% 92%, var(--glow-2), transparent 65%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+    padding:48px 20px 100px;
+    transition:background-color .3s ease, color .3s ease;
+  }
+  .wrap{max-width:720px;margin:0 auto;}
+
+  header{text-align:center;margin-bottom:36px;}
+  .kicker{
+    color:var(--gold);
+    font-size:0.78rem;
+    letter-spacing:0.12em;
+    font-weight:600;
+    margin-bottom:10px;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-optical-sizing:auto;
+    font-weight:600;
+    font-size:clamp(2rem, 5.5vw, 2.9rem);
+    margin:0 0 12px;
+    letter-spacing:0.01em;
+    line-height:1.1;
+  }
+  header p{
+    color:var(--text-muted);
+    font-size:1rem;
+    max-width:480px;
+    margin:0 auto;
+    line-height:1.55;
+  }
+
+  .panel{
+    background:var(--bg-panel);
+    border:1px solid var(--card-border);
+    border-radius:18px;
+    padding:36px 32px;
+  }
+
+  /* --- Start screen --- */
+  #startScreen label{
+    display:block;
+    font-size:0.85rem;
+    color:var(--text-muted);
+    margin-bottom:8px;
+  }
+  #nameInput{
+    width:100%;
+    background:var(--bg-panel-2);
+    border:1px solid var(--card-border);
+    border-radius:10px;
+    padding:14px 16px;
+    color:var(--text);
+    font-family:'Inter', sans-serif;
+    font-size:1rem;
+    margin-bottom:24px;
+  }
+  #nameInput:focus{outline:2px solid var(--gold); outline-offset:1px;}
+  .start-btn{
+    width:100%;
+    background:var(--gold);
+    color:var(--button-text);
+    border:none;
+    border-radius:10px;
+    padding:15px 20px;
+    font-family:'Inter', sans-serif;
+    font-size:1rem;
+    font-weight:600;
+    cursor:pointer;
+    transition:filter .15s ease;
+  }
+  .start-btn:hover{filter:brightness(1.08);}
+  .start-btn:focus-visible{outline:2px solid var(--text); outline-offset:2px;}
+  .start-note{
+    font-size:0.82rem;
+    color:var(--text-muted);
+    margin-top:16px;
+    line-height:1.5;
+  }
+
+  /* --- Quiz screen --- */
+  .progress-track{
+    height:6px;
+    background:var(--bg-panel-2);
+    border-radius:99px;
+    overflow:hidden;
+    margin-bottom:10px;
+  }
+  .progress-fill{
+    height:100%;
+    background:var(--gold);
+    border-radius:99px;
+    transition:width .35s ease;
+  }
+  .progress-label{
+    font-size:0.8rem;
+    color:var(--text-muted);
+    margin-bottom:28px;
+    text-align:right;
+  }
+  .q-prompt{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:clamp(1.3rem, 3.5vw, 1.6rem);
+    line-height:1.35;
+    margin:0 0 28px;
+  }
+  .answers{
+    display:grid;
+    gap:12px;
+  }
+  .answer-btn{
+    text-align:left;
+    background:var(--bg-panel-2);
+    border:1px solid var(--card-border);
+    color:var(--text);
+    border-radius:12px;
+    padding:16px 18px;
+    font-family:'Inter', sans-serif;
+    font-size:0.98rem;
+    line-height:1.4;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease, transform .1s ease;
+  }
+  .answer-btn:hover{border-color:var(--gold-dim); background:var(--card-tint);}
+  .answer-btn:active{transform:scale(0.99);}
+  .answer-btn:focus-visible{outline:2px solid var(--gold); outline-offset:1px;}
+
+  .back-link{
+    display:inline-block;
+    margin-top:24px;
+    color:var(--text-muted);
+    font-size:0.85rem;
+    cursor:pointer;
+    text-decoration:none;
+    border:none;
+    background:none;
+    font-family:'Inter', sans-serif;
+    padding:0;
+  }
+  .back-link:hover{color:var(--text);}
+  .back-link[disabled]{opacity:0.35; cursor:default; pointer-events:none;}
+
+  /* --- Results screen --- */
+  .result-name{
+    font-family:'Fraunces', serif;
+    text-align:center;
+    font-size:1.1rem;
+    color:var(--text-muted);
+    margin:-8px 0 4px;
+  }
+  .result-blurb{
+    text-align:center;
+    color:var(--text-muted);
+    font-size:0.92rem;
+    max-width:440px;
+    margin:0 auto;
+    line-height:1.5;
+  }
+  .type-strip{
+    display:flex;
+    gap:8px;
+    justify-content:center;
+    flex-wrap:wrap;
+    margin:20px 0 40px;
+  }
+  .type-pill{
+    font-size:0.78rem;
+    font-weight:600;
+    padding:6px 14px;
+    border-radius:99px;
+    color:#fff;
+    white-space:nowrap;
+  }
+  .type-pill .rank{
+    opacity:0.75;
+    font-weight:500;
+    margin-right:4px;
+  }
+
+  .avatar-grid{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:16px;
+    margin-bottom:44px;
+  }
+  .avatar-card{
+    background:var(--bg-panel);
+    border:1px solid var(--card-border);
+    border-radius:16px;
+    padding:22px 20px;
+    position:relative;
+    overflow:hidden;
+  }
+  .avatar-card::before{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:var(--card-tint);
+    pointer-events:none;
+  }
+  .avatar-rank{
+    font-size:0.72rem;
+    letter-spacing:0.08em;
+    font-weight:600;
+    color:var(--gold);
+    margin-bottom:2px;
+  }
+  .avatar-rank .close-note{
+    color:var(--text-muted);
+    font-weight:500;
+    letter-spacing:normal;
+    text-transform:none;
+  }
+  .avatar-type{
+    font-family:'Fraunces', serif;
+    font-size:1.05rem;
+    font-weight:600;
+    margin-bottom:2px;
+  }
+  .avatar-header{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom:12px;
+  }
+  .avatar-img-wrap{
+    width:64px; height:64px;
+    flex:none;
+    border-radius:50%;
+    background:var(--bg-panel-2);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 0 0 3px var(--avatar-glow);
+    overflow:hidden;
+  }
+  .avatar-img-wrap img{width:100%; height:100%; object-fit:contain;}
+  .avatar-mon-name{font-weight:600; font-size:1.02rem; margin-bottom:2px;}
+  .avatar-blurb-text{
+    color:var(--text-muted);
+    font-size:0.86rem;
+    line-height:1.55;
+    margin:0;
+  }
+  .avatar-official-text{
+    color:var(--text);
+    font-size:0.85rem;
+    line-height:1.55;
+    margin:12px 0 0;
+    padding-top:12px;
+    border-top:1px solid var(--card-border);
+    font-style:italic;
+  }
+  .official-label{
+    display:block;
+    color:var(--gold);
+    font-size:0.7rem;
+    letter-spacing:0.06em;
+    font-weight:600;
+    font-style:normal;
+    margin-bottom:4px;
+  }
+
+  .matches-heading{
+    font-family:'Fraunces', serif;
+    font-size:1.3rem;
+    font-weight:600;
+    text-align:center;
+    margin:0 0 6px;
+  }
+  .matches-sub{
+    text-align:center;
+    color:var(--text-muted);
+    font-size:0.88rem;
+    margin:0 0 24px;
+  }
+  .match-grid{
+    display:grid;
+    grid-template-columns:repeat(5, 1fr);
+    gap:14px;
+    margin-bottom:36px;
+  }
+  @media (max-width:620px){
+    .match-grid{grid-template-columns:repeat(3, 1fr);}
+  }
+  @media (max-width:400px){
+    .match-grid{grid-template-columns:repeat(2, 1fr);}
+  }
+  .match-card{
+    background:var(--bg-panel);
+    border:1px solid var(--card-border);
+    border-radius:12px;
+    padding:12px 8px 14px;
+    text-align:center;
+  }
+  .match-img-wrap{
+    width:56px; height:56px;
+    margin:0 auto 8px;
+    border-radius:50%;
+    background:var(--bg-panel-2);
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+  }
+  .match-img-wrap img{width:100%; height:100%; object-fit:contain;}
+  .match-name{font-size:0.78rem; font-weight:600; line-height:1.25;}
+  .match-type{font-size:0.68rem; color:var(--text-muted); margin-top:2px;}
+
+  .restart-btn{
+    display:block;
+    margin:0 auto;
+    background:none;
+    border:1px solid var(--card-border);
+    color:var(--text);
+    border-radius:10px;
+    padding:13px 26px;
+    font-family:'Inter', sans-serif;
+    font-size:0.92rem;
+    cursor:pointer;
+  }
+  .restart-btn:hover{border-color:var(--gold-dim);}
+
+  /* --- Mode toggle --- */
+  .mode-toggle{
+    position:fixed;
+    top:18px; right:18px;
+    display:flex;
+    gap:2px;
+    background:var(--bg-panel);
+    border:1px solid var(--card-border);
+    border-radius:99px;
+    padding:3px;
+    z-index:30;
+  }
+  .mode-toggle button{
+    border:none;
+    background:none;
+    color:var(--text-muted);
+    width:32px; height:32px;
+    border-radius:99px;
+    cursor:pointer;
+    font-size:0.9rem;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .mode-toggle button.active{background:var(--gold); color:var(--button-text);}
+
+  [hidden]{display:none !important;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+  <div class="mode-toggle">
+    <button id="darkModeBtn" class="active" aria-label="Dark mode" title="Dark mode">&#9789;</button>
+    <button id="lightModeBtn" aria-label="Light mode" title="Light mode">&#9728;</button>
+  </div>
+
+  <div class="wrap">
+    <header>
+      <div class="kicker">POKÉTYPE PERSONALITY QUIZ</div>
+      <h1>What's your type?</h1>
+      <p>Thirty-one quick questions — answer honestly and we'll sort you into your real elemental type.</p>
+    </header>
+
+    <div id="startScreen" class="panel">
+      <label for="nameInput">Your name (used to personalize your results)</label>
+      <input id="nameInput" type="text" placeholder="e.g. Alex" autocomplete="off">
+      <button class="start-btn" id="startBtn">Begin the quiz</button>
+      <p class="start-note">Takes about 6-8 minutes. Your answers stay in your browser — nothing is sent anywhere.</p>
+    </div>
+
+    <div id="quizScreen" class="panel" hidden>
+      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <div class="progress-label" id="progressLabel">Question 1 of 20</div>
+      <div class="q-prompt" id="qPrompt"></div>
+      <div class="answers" id="answersWrap"></div>
+      <button class="back-link" id="backBtn">&larr; Previous question</button>
+    </div>
+
+    <div id="resultsScreen" hidden>
+      <h1 style="text-align:center;" id="resultsHeading"></h1>
+      <div class="result-name" id="resultsSubname"></div>
+      <p class="result-blurb" id="resultsBlurb"></p>
+      <div class="type-strip" id="typeStrip"></div>
+      <div class="avatar-grid" id="avatarGrid"></div>
+      <div class="matches-heading">Your personality matches</div>
+      <p class="matches-sub">Ten Pokémon drawn from across your type profile</p>
+      <div class="match-grid" id="matchGrid"></div>
+      <button class="restart-btn" id="restartBtn">Retake the quiz</button>
+    </div>
+  </div>
+
+<script>
+
+// --- Verified 482-entry Pokémon type pool (reused from Pokédex Astrology app) ---
+const TYPE_POOLS = {
+  Fire: [
+    {dex:6, name:"Charizard", types:["Fire","Flying"], trait:"fearless, quick to soar"},
+    {dex:38, name:"Ninetales", types:["Fire"], trait:"sharp instincts, fierce loyalty"},
+    {dex:59, name:"Arcanine", types:["Fire"], trait:"loyal, powerful, protective"},
+    {dex:78, name:"Rapidash", types:["Fire"], trait:"proud, graceful under pressure"},
+    {dex:136, name:"Flareon", types:["Fire"], trait:"warm, fiercely affectionate"},
+    {dex:157, name:"Typhlosion", types:["Fire"], trait:"explosive energy, short fuse"},
+    {dex:219, name:"Magcargo", types:["Fire","Rock"], trait:"slow-burning, thick-skinned"},
+    {dex:229, name:"Houndoom", types:["Dark","Fire"], trait:"intense, pack-driven"},
+    {dex:257, name:"Blaziken", types:["Fire","Fighting"], trait:"fights first, thinks later"},
+    {dex:323, name:"Camerupt", types:["Fire","Ground"], trait:"steady until it erupts"},
+    {dex:324, name:"Torkoal", types:["Fire"], trait:"steady confidence, slow burn"},
+    {dex:392, name:"Infernape", types:["Fire","Fighting"], trait:"restless competitor, natural leader"},
+    {dex:467, name:"Magmortar", types:["Fire"], trait:"volatile, high output"},
+    {dex:500, name:"Emboar", types:["Fire","Fighting"], trait:"warm-hearted, wears feelings openly"},
+    {dex:514, name:"Simisear", types:["Fire"], trait:"quick-tempered, eager"},
+    {dex:555, name:"Darmanitan", types:["Fire"], trait:"intense focus, two moods"},
+    {dex:609, name:"Chandelure", types:["Ghost","Fire"], trait:"hypnotic, quietly consuming"},
+    {dex:631, name:"Heatmor", types:["Fire"], trait:"persistent, single-minded"},
+    {dex:637, name:"Volcarona", types:["Bug","Fire"], trait:"radiant, transformed by trial"},
+    {dex:655, name:"Delphox", types:["Fire","Psychic"], trait:"theatrical, wise beyond years"},
+    {dex:663, name:"Talonflame", types:["Fire","Flying"], trait:"fast-talking, faster to move on"},
+    {dex:668, name:"Pyroar", types:["Fire","Normal"], trait:"born to lead the pride"},
+    {dex:727, name:"Incineroar", types:["Fire","Dark"], trait:"guarded heat, softer than it lets on"},
+    {dex:741, name:"Oricorio", types:["Fire","Flying"], slug:"oricorio-baile", trait:"takes on the color of wherever it's been"},
+    {dex:758, name:"Salazzle", types:["Poison","Fire"], trait:"confident, unbothered"},
+    {dex:776, name:"Turtonator", types:["Fire","Dragon"], trait:"defensive, explosive when cornered"},
+    {dex:815, name:"Cinderace", types:["Fire"], trait:"competitive, burns off tension fast"},
+    {dex:839, name:"Coalossal", types:["Rock","Fire"], trait:"slow, immense, warming"},
+    {dex:851, name:"Centiskorch", types:["Fire","Bug"], trait:"aggressive, relentless"},
+    {dex:911, name:"Skeledirge", types:["Fire","Ghost"], trait:"warm heart, dramatic flair"},
+    {dex:936, name:"Armarouge", types:["Fire","Psychic"], trait:"chivalrous, disciplined"},
+    {dex:937, name:"Ceruledge", types:["Fire","Ghost"], trait:"honor-bound, sharp-edged"},
+    {dex:952, name:"Scovillain", types:["Grass","Fire"], trait:"moody, unpredictably spicy"},
+    {dex:105, name:"Marowak-Alola", types:["Fire","Ghost"], slug:"marowak-alolan", trait:"haunted by loss, burns with resolve"},
+    {dex:157, name:"Typhlosion-Hisui", types:["Fire","Ghost"], slug:"typhlosion-hisuian", trait:"haunting flame, otherworldly presence"},
+    {dex:59, name:"Arcanine-Hisui", types:["Fire","Rock"], slug:"arcanine-hisuian", trait:"noble, ancient guardian energy"},
+    {dex:128, name:"Tauros-Paldea-Blaze", types:["Fighting","Fire"], slug:"tauros-paldea-blaze-breed", trait:"hot-tempered, charges with fire"},
+  ],
+  Ground: [
+    {dex:28, name:"Sandslash", types:["Ground"], trait:"defensive, quick to curl up"},
+    {dex:31, name:"Nidoqueen", types:["Poison","Ground"], trait:"protective, formidable"},
+    {dex:34, name:"Nidoking", types:["Poison","Ground"], trait:"aggressive, territorial"},
+    {dex:51, name:"Dugtrio", types:["Ground"], trait:"synchronized, always moving"},
+    {dex:76, name:"Golem", types:["Rock","Ground"], trait:"immovable, thick-skinned"},
+    {dex:105, name:"Marowak", types:["Ground"], trait:"grieving turned resilient"},
+    {dex:195, name:"Quagsire", types:["Water","Ground"], trait:"unbothered, slow to react"},
+    {dex:208, name:"Steelix", types:["Steel","Ground"], trait:"unbreakable resolve"},
+    {dex:232, name:"Donphan", types:["Ground"], trait:"reliable, hard to budge"},
+    {dex:260, name:"Swampert", types:["Water","Ground"], trait:"unshaken, absorbs pressure easily"},
+    {dex:330, name:"Flygon", types:["Ground","Dragon"], trait:"free-spirited, hates being fenced in"},
+    {dex:340, name:"Whiscash", types:["Water","Ground"], trait:"unfazed, senses tremors coming"},
+    {dex:344, name:"Claydol", types:["Ground","Psychic"], trait:"ancient, inscrutable"},
+    {dex:389, name:"Torterra", types:["Grass","Ground"], trait:"carries a lot quietly"},
+    {dex:413, name:"Wormadam", types:["Bug","Ground"], trait:"adapted to its surroundings"},
+    {dex:423, name:"Gastrodon", types:["Water","Ground"], trait:"adaptable, unbothered by mess"},
+    {dex:445, name:"Garchomp", types:["Dragon","Ground"], trait:"blunt, straightforward force"},
+    {dex:450, name:"Hippowdon", types:["Ground"], trait:"territorial, imposing"},
+    {dex:464, name:"Rhyperior", types:["Ground","Rock"], trait:"powerful, unhurried"},
+    {dex:472, name:"Gliscor", types:["Ground","Flying"], trait:"patient ambusher"},
+    {dex:473, name:"Mamoswine", types:["Ice","Ground"], trait:"ancient strength, steady gait"},
+    {dex:530, name:"Excadrill", types:["Ground","Steel"], trait:"determined, digs in and stays"},
+    {dex:537, name:"Seismitoad", types:["Water","Ground"], trait:"resonant, hard to ignore"},
+    {dex:553, name:"Krookodile", types:["Ground","Dark"], trait:"patient predator"},
+    {dex:618, name:"Stunfisk", types:["Ground","Electric"], trait:"deceptively still"},
+    {dex:623, name:"Golurk", types:["Ground","Ghost"], trait:"silent, ancient purpose"},
+    {dex:660, name:"Diggersby", types:["Normal","Ground"], trait:"industrious, unassuming"},
+    {dex:750, name:"Mudsdale", types:["Ground"], trait:"tireless, dependable"},
+    {dex:770, name:"Palossand", types:["Ghost","Ground"], trait:"patient, lures you in"},
+    {dex:844, name:"Sandaconda", types:["Ground"], trait:"coiled, ready to burst"},
+    {dex:867, name:"Runerigus", types:["Ground","Ghost"], trait:"haunted by what it carries"},
+    {dex:901, name:"Ursaluna", types:["Ground","Normal"], trait:"heavy presence, deep memory"},
+    {dex:949, name:"Toedscruel", types:["Ground","Grass"], trait:"spreads quietly, takes root"},
+    {dex:980, name:"Clodsire", types:["Poison","Ground"], trait:"unbothered, endlessly patient"},
+    {dex:51, name:"Dugtrio-Alola", types:["Ground","Steel"], slug:"dugtrio-alolan", trait:"vain, keeps up appearances"},
+    {dex:618, name:"Stunfisk-Galar", types:["Ground","Steel"], slug:"stunfisk-galarian", trait:"camouflaged trap, waits it out"},
+  ],
+  Rock: [
+    {dex:76, name:"Golem", types:["Rock","Ground"], trait:"immovable, thick-skinned"},
+    {dex:142, name:"Aerodactyl", types:["Rock","Flying"], trait:"ancient, quick to strike"},
+    {dex:185, name:"Sudowoodo", types:["Rock"], trait:"stubborn, easily provoked"},
+    {dex:213, name:"Shuckle", types:["Bug","Rock"], trait:"patient, quietly hoarding"},
+    {dex:219, name:"Magcargo", types:["Fire","Rock"], trait:"slow-burning, thick-skinned"},
+    {dex:222, name:"Corsola", types:["Water","Rock"], trait:"delicate, easily overlooked"},
+    {dex:248, name:"Tyranitar", types:["Rock","Dark"], trait:"overwhelming, hard to redirect"},
+    {dex:299, name:"Nosepass", types:["Rock"], trait:"fixed direction, unmovable"},
+    {dex:306, name:"Aggron", types:["Steel","Rock"], trait:"guarded, builds slowly and solidly"},
+    {dex:337, name:"Lunatone", types:["Rock","Psychic"], trait:"quiet, tied to a cycle"},
+    {dex:338, name:"Solrock", types:["Rock","Psychic"], trait:"intense, radiates confidence"},
+    {dex:346, name:"Cradily", types:["Rock","Grass"], trait:"ancient, deliberate"},
+    {dex:348, name:"Armaldo", types:["Rock","Bug"], trait:"armored, tenacious"},
+    {dex:369, name:"Relicanth", types:["Water","Rock"], trait:"unchanged, patient across ages"},
+    {dex:409, name:"Rampardos", types:["Rock"], trait:"headstrong, singularly focused"},
+    {dex:411, name:"Bastiodon", types:["Rock","Steel"], trait:"unshakeable defense, quiet resolve"},
+    {dex:464, name:"Rhyperior", types:["Ground","Rock"], trait:"powerful, unhurried"},
+    {dex:476, name:"Probopass", types:["Rock","Steel"], trait:"methodical, sticks to the plan"},
+    {dex:526, name:"Gigalith", types:["Rock"], trait:"commanding, draws others in"},
+    {dex:558, name:"Crustle", types:["Bug","Rock"], trait:"territorial, carries its home"},
+    {dex:565, name:"Carracosta", types:["Water","Rock"], trait:"ancient, unhurried strength"},
+    {dex:567, name:"Archeops", types:["Rock","Flying"], trait:"proud, struggles when grounded"},
+    {dex:689, name:"Barbaracle", types:["Rock","Water"], trait:"uncoordinated but relentless"},
+    {dex:697, name:"Tyrantrum", types:["Rock","Dragon"], trait:"regal, commanding presence"},
+    {dex:699, name:"Aurorus", types:["Rock","Ice"], trait:"ancient, quietly majestic"},
+    {dex:703, name:"Carbink", types:["Rock","Fairy"], trait:"delicate exterior, dense core"},
+    {dex:745, name:"Lycanroc", types:["Rock"], trait:"instinctive, shaped by when it evolved"},
+    {dex:774, name:"Minior", types:["Rock","Flying"], trait:"hard shell, volatile core underneath"},
+    {dex:834, name:"Drednaw", types:["Water","Rock"], trait:"stubborn, bites down and holds"},
+    {dex:839, name:"Coalossal", types:["Rock","Fire"], trait:"slow, immense, warming"},
+    {dex:874, name:"Stonjourner", types:["Rock"], trait:"steadfast, marks its territory and stays"},
+    {dex:900, name:"Kleavor", types:["Bug","Rock"], trait:"sharp-edged, decisive"},
+    {dex:934, name:"Garganacl", types:["Rock"], trait:"weathered, protective of its group"},
+    {dex:950, name:"Klawf", types:["Rock"], trait:"territorial, quick to snap"},
+    {dex:970, name:"Glimmora", types:["Rock","Poison"], trait:"showy, quietly dangerous"},
+    {dex:76, name:"Golem-Alola", types:["Rock","Electric"], slug:"golem-alolan", trait:"charged up, rolls with more force"},
+    {dex:713, name:"Avalugg-Hisui", types:["Ice","Rock"], slug:"avalugg-hisuian", trait:"ancient, weathers everything"},
+    {dex:59, name:"Arcanine-Hisui", types:["Fire","Rock"], slug:"arcanine-hisuian", trait:"noble, ancient guardian energy"},
+  ],
+  Psychic: [
+    {dex:65, name:"Alakazam", types:["Psychic"], trait:"sharp mind, endless questions"},
+    {dex:80, name:"Slowbro", types:["Water","Psychic"], trait:"dreamy, slow to react but deep"},
+    {dex:97, name:"Hypno", types:["Psychic"], trait:"watchful, lulling"},
+    {dex:103, name:"Exeggutor", types:["Grass","Psychic"], trait:"overthinks from three angles"},
+    {dex:121, name:"Starmie", types:["Water","Psychic"], trait:"intuitive, quietly complex"},
+    {dex:122, name:"Mr. Mime", types:["Psychic","Fairy"], trait:"expressive, boundary-setting"},
+    {dex:124, name:"Jynx", types:["Ice","Psychic"], trait:"theatrical, magnetic"},
+    {dex:196, name:"Espeon", types:["Psychic"], trait:"intuitive, reads the room fast"},
+    {dex:199, name:"Slowking", types:["Water","Psychic"], trait:"reflective, absorbs before responding"},
+    {dex:201, name:"Unown", types:["Psychic"], trait:"cryptic, many faces"},
+    {dex:202, name:"Wobbuffet", types:["Psychic"], trait:"passive until pushed"},
+    {dex:282, name:"Gardevoir", types:["Psychic","Fairy"], trait:"protective, seeks harmony"},
+    {dex:308, name:"Medicham", types:["Fighting","Psychic"], trait:"disciplined, inward focus"},
+    {dex:326, name:"Grumpig", types:["Psychic"], trait:"eccentric, quietly perceptive"},
+    {dex:337, name:"Lunatone", types:["Rock","Psychic"], trait:"quiet, tied to a cycle"},
+    {dex:338, name:"Solrock", types:["Rock","Psychic"], trait:"intense, radiates confidence"},
+    {dex:344, name:"Claydol", types:["Ground","Psychic"], trait:"ancient, inscrutable"},
+    {dex:358, name:"Chimecho", types:["Psychic"], trait:"calm, resonant"},
+    {dex:437, name:"Bronzong", types:["Steel","Psychic"], trait:"ancient, quietly reliable"},
+    {dex:475, name:"Gallade", types:["Psychic","Fighting"], trait:"chivalrous, decisive"},
+    {dex:518, name:"Musharna", types:["Psychic"], trait:"dreamy, drifts easily"},
+    {dex:528, name:"Swoobat", types:["Psychic","Flying"], trait:"affectionate, erratic flight"},
+    {dex:561, name:"Sigilyph", types:["Psychic","Flying"], trait:"watchful, mentally quick"},
+    {dex:576, name:"Gothitelle", types:["Psychic"], trait:"fatalistic, quietly certain"},
+    {dex:579, name:"Reuniclus", types:["Psychic"], trait:"calculating, patient"},
+    {dex:606, name:"Beheeyem", types:["Psychic"], trait:"analytical, erases what it studies"},
+    {dex:655, name:"Delphox", types:["Fire","Psychic"], trait:"theatrical, wise beyond years"},
+    {dex:678, name:"Meowstic", types:["Psychic"], trait:"reserved, guards its feelings"},
+    {dex:687, name:"Malamar", types:["Dark","Psychic"], trait:"manipulative, upside-down logic"},
+    {dex:765, name:"Oranguru", types:["Normal","Psychic"], trait:"wise, deliberately slow"},
+    {dex:779, name:"Bruxish", types:["Water","Psychic"], trait:"grinds through problems"},
+    {dex:826, name:"Orbeetle", types:["Bug","Psychic"], trait:"calculating, sees the whole board"},
+    {dex:858, name:"Hatterene", types:["Psychic","Fairy"], trait:"sensitive, easily overwhelmed by noise"},
+    {dex:866, name:"Mr. Rime", types:["Ice","Psychic"], trait:"theatrical, precise"},
+    {dex:876, name:"Indeedee", types:["Psychic","Normal"], trait:"attentive, reads intentions"},
+    {dex:899, name:"Wyrdeer", types:["Normal","Psychic"], trait:"composed, hard-won calm"},
+    {dex:936, name:"Armarouge", types:["Fire","Psychic"], trait:"chivalrous, disciplined"},
+    {dex:954, name:"Rabsca", types:["Bug","Psychic"], trait:"carries its group forward"},
+    {dex:956, name:"Espathra", types:["Psychic"], trait:"graceful, easily spooked"},
+    {dex:981, name:"Farigiraf", types:["Normal","Psychic"], trait:"delayed reactions, deep processing"},
+    {dex:26, name:"Raichu-Alola", types:["Electric","Psychic"], slug:"raichu-alolan", trait:"surfs on its own tail, effortlessly cool"},
+    {dex:80, name:"Slowbro-Galar", types:["Poison","Psychic"], slug:"slowbro-galarian", trait:"reckless once provoked, otherwise placid"},
+    {dex:199, name:"Slowking-Galar", types:["Poison","Psychic"], slug:"slowking-galarian", trait:"eccentric genius, unpredictable brilliance"},
+    {dex:78, name:"Rapidash-Galar", types:["Psychic","Fairy"], slug:"rapidash-galarian", trait:"regal, untouchable pride"},
+    {dex:628, name:"Braviary-Hisui", types:["Psychic","Flying"], slug:"braviary-hisuian", trait:"visionary, guided by instinct"},
+  ],
+  Flying: [
+    {dex:6, name:"Charizard", types:["Fire","Flying"], trait:"fearless, quick to soar"},
+    {dex:12, name:"Butterfree", types:["Bug","Flying"], trait:"gentle, guided by scent"},
+    {dex:18, name:"Pidgeot", types:["Normal","Flying"], trait:"restless, quick to change course"},
+    {dex:22, name:"Fearow", types:["Normal","Flying"], trait:"territorial, single-minded"},
+    {dex:83, name:"Farfetch’d", types:["Normal","Flying"], trait:"stubborn, attached to its stalk"},
+    {dex:85, name:"Dodrio", types:["Normal","Flying"], trait:"three minds, rarely agreeing"},
+    {dex:130, name:"Gyarados", types:["Water","Flying"], trait:"calm until provoked"},
+    {dex:142, name:"Aerodactyl", types:["Rock","Flying"], trait:"ancient, quick to strike"},
+    {dex:149, name:"Dragonite", types:["Dragon","Flying"], trait:"friendly but always ready to roam"},
+    {dex:164, name:"Noctowl", types:["Normal","Flying"], trait:"watchful, thinks before acting"},
+    {dex:166, name:"Ledian", types:["Bug","Flying"], trait:"hopeful, a little unlucky"},
+    {dex:169, name:"Crobat", types:["Poison","Flying"], trait:"elusive, hard to read"},
+    {dex:178, name:"Xatu", types:["Psychic","Flying"], trait:"sees two futures at once"},
+    {dex:189, name:"Jumpluff", types:["Grass","Flying"], trait:"carried by whatever wind comes"},
+    {dex:225, name:"Delibird", types:["Ice","Flying"], trait:"generous, gives at inconvenient times"},
+    {dex:226, name:"Mantine", types:["Water","Flying"], trait:"graceful, unbothered passenger"},
+    {dex:227, name:"Skarmory", types:["Steel","Flying"], trait:"guarded, sharp-edged"},
+    {dex:267, name:"Beautifly", types:["Bug","Flying"], trait:"drawn to what’s sweet"},
+    {dex:277, name:"Swellow", types:["Normal","Flying"], trait:"proud, territorial flier"},
+    {dex:279, name:"Pelipper", types:["Water","Flying"], trait:"dependable, carries more than it should"},
+    {dex:284, name:"Masquerain", types:["Bug","Flying"], trait:"flighty, easily distracted"},
+    {dex:291, name:"Ninjask", types:["Bug","Flying"], trait:"impatient, always in motion"},
+    {dex:334, name:"Altaria", types:["Dragon","Flying"], trait:"dreamy wanderer, head in the clouds"},
+    {dex:357, name:"Tropius", types:["Grass","Flying"], trait:"easygoing, weighed down but unbothered"},
+    {dex:373, name:"Salamence", types:["Dragon","Flying"], trait:"impatient, born to move fast"},
+    {dex:398, name:"Staraptor", types:["Normal","Flying"], trait:"impulsive, hard to pin down"},
+    {dex:414, name:"Mothim", types:["Bug","Flying"], trait:"drawn to what glimmers"},
+    {dex:416, name:"Vespiquen", types:["Bug","Flying"], trait:"commanding, protective of its own"},
+    {dex:426, name:"Drifblim", types:["Ghost","Flying"], trait:"aimless, carried by the wind"},
+    {dex:430, name:"Honchkrow", types:["Dark","Flying"], trait:"commanding, watches from above"},
+    {dex:441, name:"Chatot", types:["Normal","Flying"], trait:"mimicking, repeats what it hears"},
+    {dex:468, name:"Togekiss", types:["Fairy","Flying"], trait:"gentle diplomat, kind-hearted"},
+    {dex:469, name:"Yanmega", types:["Bug","Flying"], trait:"relentless, fast pursuit"},
+    {dex:472, name:"Gliscor", types:["Ground","Flying"], trait:"patient ambusher"},
+    {dex:521, name:"Unfezant", types:["Normal","Flying"], trait:"proud, distinct roles by gender"},
+    {dex:528, name:"Swoobat", types:["Psychic","Flying"], trait:"affectionate, erratic flight"},
+    {dex:561, name:"Sigilyph", types:["Psychic","Flying"], trait:"watchful, mentally quick"},
+    {dex:567, name:"Archeops", types:["Rock","Flying"], trait:"proud, struggles when grounded"},
+    {dex:581, name:"Swanna", types:["Water","Flying"], trait:"graceful, short temper underneath"},
+    {dex:587, name:"Emolga", types:["Electric","Flying"], trait:"playful nonconformist, hard to predict"},
+    {dex:628, name:"Braviary", types:["Normal","Flying"], trait:"bold talker, freedom-seeking"},
+    {dex:630, name:"Mandibuzz", types:["Dark","Flying"], trait:"patient scavenger, watches and waits"},
+    {dex:663, name:"Talonflame", types:["Fire","Flying"], trait:"fast-talking, faster to move on"},
+    {dex:666, name:"Vivillon", types:["Bug","Flying"], trait:"shaped by where it’s from"},
+    {dex:741, name:"Oricorio", types:["Fire","Flying"], slug:"oricorio-baile", trait:"takes on the color of wherever it's been"},
+    {dex:701, name:"Hawlucha", types:["Fighting","Flying"], trait:"showy, thrives on an audience"},
+    {dex:715, name:"Noivern", types:["Flying","Dragon"], trait:"restless, navigates by instinct"},
+    {dex:733, name:"Toucannon", types:["Normal","Flying"], trait:"loud, announces itself"},
+    {dex:774, name:"Minior", types:["Rock","Flying"], trait:"hard shell, volatile core underneath"},
+    {dex:823, name:"Corviknight", types:["Flying","Steel"], trait:"dependable, carries the weight"},
+    {dex:845, name:"Cramorant", types:["Flying","Water"], trait:"greedy, bites off more than it can chew"},
+    {dex:931, name:"Squawkabilly", types:["Normal","Flying"], trait:"loud, colorful moods"},
+    {dex:941, name:"Kilowattrel", types:["Electric","Flying"], trait:"energetic, rarely lands"},
+    {dex:962, name:"Bombirdier", types:["Flying","Dark"], trait:"opportunistic, drops things unexpectedly"},
+    {dex:973, name:"Flamigo", types:["Flying","Fighting"], trait:"flighty until it commits"},
+    {dex:628, name:"Braviary-Hisui", types:["Psychic","Flying"], slug:"braviary-hisuian", trait:"visionary, guided by instinct"},
+  ],
+  Water: [
+    {dex:457, name:"Lumineon", types:["Water"], trait:"glimmers in the deep, quietly luring"},
+    {dex:400, name:"Bibarel", types:["Normal", "Water"], trait:"industrious builder, dams every stream"},
+    {dex:55, name:"Golduck", types:["Water"], trait:"calm surface, formidable underneath"},
+    {dex:9, name:"Blastoise", types:["Water"], trait:"retreats to think, re-emerges composed"},
+    {dex:62, name:"Poliwrath", types:["Water","Fighting"], trait:"disciplined, steady under pressure"},
+    {dex:73, name:"Tentacruel", types:["Water","Poison"], trait:"defensive, keeps its distance"},
+    {dex:80, name:"Slowbro", types:["Water","Psychic"], trait:"dreamy, slow to react but deep"},
+    {dex:87, name:"Dewgong", types:["Water","Ice"], trait:"graceful, unhurried"},
+    {dex:91, name:"Cloyster", types:["Water","Ice"], trait:"guarded, sharp when provoked"},
+    {dex:99, name:"Kingler", types:["Water"], trait:"lopsided strength, quick temper"},
+    {dex:119, name:"Seaking", types:["Water"], trait:"persistent, swims against the current"},
+    {dex:121, name:"Starmie", types:["Water","Psychic"], trait:"intuitive, quietly complex"},
+    {dex:130, name:"Gyarados", types:["Water","Flying"], trait:"calm until provoked"},
+    {dex:131, name:"Lapras", types:["Water","Ice"], trait:"carries others without being asked"},
+    {dex:134, name:"Vaporeon", types:["Water"], trait:"deeply feeling, adapts to any mood"},
+    {dex:139, name:"Omastar", types:["Rock","Water"], trait:"ancient, defensive coil"},
+    {dex:141, name:"Kabutops", types:["Rock","Water"], trait:"ancient, efficient predator"},
+    {dex:160, name:"Feraligatr", types:["Water"], trait:"loud about what it feels, no filter"},
+    {dex:171, name:"Lanturn", types:["Water","Electric"], trait:"lights the way, draws others in"},
+    {dex:184, name:"Azumarill", types:["Water","Fairy"], trait:"sensitive, soaks up the room’s mood"},
+    {dex:186, name:"Politoed", types:["Water"], trait:"confident, self-assured"},
+    {dex:195, name:"Quagsire", types:["Water","Ground"], trait:"unbothered, slow to react"},
+    {dex:199, name:"Slowking", types:["Water","Psychic"], trait:"reflective, absorbs before responding"},
+    {dex:222, name:"Corsola", types:["Water","Rock"], trait:"delicate, easily overlooked"},
+    {dex:260, name:"Swampert", types:["Water","Ground"], trait:"unshaken, absorbs pressure easily"},
+    {dex:272, name:"Ludicolo", types:["Water","Grass"], trait:"festive, thrives on energy around it"},
+    {dex:319, name:"Sharpedo", types:["Water","Dark"], trait:"aggressive, senses weakness"},
+    {dex:321, name:"Wailord", types:["Water"], trait:"gentle giant, hard to miss"},
+    {dex:330, name:"Flygon", types:["Ground","Dragon"], trait:"free-spirited, hates being fenced in"},
+    {dex:340, name:"Whiscash", types:["Water","Ground"], trait:"unfazed, senses tremors coming"},
+    {dex:342, name:"Crawdaunt", types:["Water","Dark"], trait:"aggressive, holds a grudge"},
+    {dex:350, name:"Milotic", types:["Water"], trait:"graceful, quietly perceptive"},
+    {dex:369, name:"Relicanth", types:["Water","Rock"], trait:"unchanged, patient across ages"},
+    {dex:370, name:"Luvdisc", types:["Water"], trait:"affectionate, devoted"},
+    {dex:395, name:"Empoleon", types:["Water","Steel"], trait:"loyal guardian, dignified"},
+    {dex:419, name:"Floatzel", types:["Water"], trait:"energetic, quick to act"},
+    {dex:423, name:"Gastrodon", types:["Water","Ground"], trait:"adaptable, unbothered by mess"},
+    {dex:503, name:"Samurott", types:["Water"], trait:"disciplined feeling, rarely spills over"},
+    {dex:516, name:"Simipour", types:["Water"], trait:"calm, steady stream"},
+    {dex:537, name:"Seismitoad", types:["Water","Ground"], trait:"resonant, hard to ignore"},
+    {dex:565, name:"Carracosta", types:["Water","Rock"], trait:"ancient, unhurried strength"},
+    {dex:581, name:"Swanna", types:["Water","Flying"], trait:"graceful, short temper underneath"},
+    {dex:593, name:"Jellicent", types:["Water","Ghost"], trait:"drifting, hard to hold onto"},
+    {dex:594, name:"Alomomola", types:["Water"], trait:"endlessly comforting, gives without asking"},
+    {dex:658, name:"Greninja", types:["Water","Dark"], trait:"guarded, processes alone before surfacing"},
+    {dex:689, name:"Barbaracle", types:["Rock","Water"], trait:"uncoordinated but relentless"},
+    {dex:224, name:"Octillery", types:["Water"], trait:"stubborn, digs in and holds its ground"},
+    {dex:367, name:"Huntail", types:["Water"], trait:"sleek predator, lurks in the deep"},
+    {dex:368, name:"Gorebyss", types:["Water"], trait:"elegant, drawn to warmth"},
+    {dex:550, name:"Basculin", types:["Water"], trait:"aggressive, territorial, quick to fight"},
+    {dex:692, name:"Clawitzer", types:["Water"], trait:"powerful, single-minded focus"},
+    {dex:730, name:"Primarina", types:["Water","Fairy"], trait:"expressive, soothes itself through others"},
+    {dex:746, name:"Wishiwashi", types:["Water"], trait:"timid alone, bold in a group"},
+    {dex:771, name:"Pyukumuku", types:["Water"], trait:"stubborn, always returns to its spot"},
+    {dex:961, name:"Wugtrio", types:["Water"], trait:"triple the mischief, none of the subtlety"},
+    {dex:847, name:"Barraskewda", types:["Water"], trait:"fast, single-purpose"},
+    {dex:748, name:"Toxapex", types:["Poison","Water"], trait:"defensive, unbothered by threats"},
+    {dex:779, name:"Bruxish", types:["Water","Psychic"], trait:"grinds through problems"},
+    {dex:834, name:"Drednaw", types:["Water","Rock"], trait:"stubborn, bites down and holds"},
+    {dex:818, name:"Inteleon", types:["Water"], trait:"cool composure, precise under pressure"},
+    {dex:882, name:"Dracovish", types:["Water","Dragon"], trait:"ancient, single-minded hunger"},
+    {dex:883, name:"Arctovish", types:["Water","Ice"], trait:"ancient, cold patience"},
+    {dex:902, name:"Basculegion", types:["Water","Ghost"], trait:"driven, won’t be turned back"},
+    {dex:964, name:"Palafin", types:["Water"], trait:"unassuming until it’s needed"},
+    {dex:976, name:"Veluza", types:["Water","Psychic"], trait:"sleek, slips through obstacles"},
+    {dex:977, name:"Dondozo", types:["Water"], trait:"patient giant, carries a partner"},
+    {dex:978, name:"Tatsugiri", types:["Dragon","Water"], trait:"theatrical, plays a role"},
+    {dex:914, name:"Quaquaval", types:["Water","Fighting"], trait:"passionate, channels feeling into motion"},
+    {dex:503, name:"Samurott-Hisui", types:["Water","Dark"], slug:"samurott-hisuian", trait:"battle-worn, honed by hardship"},
+    {dex:128, name:"Tauros-Paldea-Aqua", types:["Fighting","Water"], slug:"tauros-paldea-aqua-breed", trait:"relentless, crashes like a wave"},
+  ],
+  Grass: [
+    {dex:275, name:"Shiftry", types:["Grass", "Dark"], trait:"stirs up storms, arrives unannounced"},
+    {dex:47, name:"Parasect", types:["Bug", "Grass"], trait:"host to something else, quietly overtaken"},
+    {dex:3, name:"Venusaur", types:["Grass","Poison"], trait:"quietly powerful, patient grower"},
+    {dex:45, name:"Vileplume", types:["Grass","Poison"], trait:"meticulous, doesn’t rush blooming"},
+    {dex:103, name:"Exeggutor", types:["Grass","Psychic"], trait:"overthinks from three angles"},
+    {dex:114, name:"Tangela", types:["Grass"], trait:"tangled, hard to read"},
+    {dex:154, name:"Meganium", types:["Grass"], trait:"gentle, keeps everyone calm"},
+    {dex:182, name:"Bellossom", types:["Grass"], trait:"joyful, blooms under the right conditions"},
+    {dex:192, name:"Sunflora", types:["Grass"], trait:"bright, follows the energy in a room"},
+    {dex:254, name:"Sceptile", types:["Grass"], trait:"efficient, precise under pressure"},
+    {dex:272, name:"Ludicolo", types:["Water","Grass"], trait:"festive, thrives on energy around it"},
+    {dex:286, name:"Breloom", types:["Grass","Fighting"], trait:"aggressive, deceptively fast"},
+    {dex:332, name:"Cacturne", types:["Grass","Dark"], trait:"patient ambusher"},
+    {dex:346, name:"Cradily", types:["Rock","Grass"], trait:"ancient, deliberate"},
+    {dex:357, name:"Tropius", types:["Grass","Flying"], trait:"easygoing, weighed down but unbothered"},
+    {dex:389, name:"Torterra", types:["Grass","Ground"], trait:"carries a lot quietly"},
+    {dex:407, name:"Roserade", types:["Grass","Poison"], trait:"elegant, hides a sharp edge"},
+    {dex:413, name:"Wormadam", types:["Bug","Grass"], trait:"adapted to its surroundings"},
+    {dex:421, name:"Cherrim", types:["Grass"], trait:"changes mood with the weather"},
+    {dex:455, name:"Carnivine", types:["Grass"], trait:"lies in wait, snaps when ready"},
+    {dex:460, name:"Abomasnow", types:["Grass","Ice"], trait:"brooding, brings the storm with it"},
+    {dex:465, name:"Tangrowth", types:["Grass"], trait:"overgrown, entangles what’s near"},
+    {dex:470, name:"Leafeon", types:["Grass"], trait:"calm, photosynthesizes its mood"},
+    {dex:497, name:"Serperior", types:["Grass"], trait:"composed, quietly exacting"},
+    {dex:512, name:"Simisage", types:["Grass"], trait:"energetic, quick to leap"},
+    {dex:549, name:"Lilligant", types:["Grass"], trait:"elegant, particular about its space"},
+    {dex:547, name:"Whimsicott", types:["Grass","Fairy"], trait:"mischievous, impossible to pin down"},
+    {dex:556, name:"Maractus", types:["Grass"], trait:"rhythmic, upbeat"},
+    {dex:586, name:"Sawsbuck", types:["Normal","Grass"], trait:"graceful, changes with the seasons"},
+    {dex:591, name:"Amoonguss", types:["Grass","Poison"], trait:"deceptive, patient trap"},
+    {dex:598, name:"Ferrothorn", types:["Grass","Steel"], trait:"defensive, painful to approach"},
+    {dex:652, name:"Chesnaught", types:["Grass","Fighting"], trait:"protective instinct as its default"},
+    {dex:673, name:"Gogoat", types:["Grass"], trait:"steady, reliable mount"},
+    {dex:711, name:"Gourgeist", types:["Ghost","Grass"], trait:"mischievous, festive menace"},
+    {dex:724, name:"Decidueye", types:["Grass","Ghost"], trait:"careful aim, rarely misses"},
+    {dex:754, name:"Lurantis", types:["Grass"], trait:"deceptive beauty, patient hunter"},
+    {dex:756, name:"Shiinotic", types:["Grass","Fairy"], trait:"luminous, lulls things to sleep"},
+    {dex:763, name:"Tsareena", types:["Grass"], trait:"regal, doesn’t tolerate disrespect"},
+    {dex:812, name:"Rillaboom", types:["Grass"], trait:"steady rhythm, dependable work ethic"},
+    {dex:830, name:"Eldegoss", types:["Grass"], trait:"gentle, drifts on good will"},
+    {dex:841, name:"Flapple", types:["Grass","Dragon"], trait:"tart, quick to snap"},
+    {dex:842, name:"Appletun", types:["Grass","Dragon"], trait:"sweet, easygoing, hard to rush"},
+    {dex:908, name:"Meowscarada", types:["Grass","Dark"], trait:"sly about what it’s feeling"},
+    {dex:930, name:"Arboliva", types:["Grass","Normal"], trait:"wise, settled, produces in abundance"},
+    {dex:947, name:"Brambleghast", types:["Grass","Ghost"], trait:"drifts and gathers, quietly ominous"},
+    {dex:949, name:"Toedscruel", types:["Ground","Grass"], trait:"spreads quietly, takes root"},
+    {dex:952, name:"Scovillain", types:["Grass","Fire"], trait:"moody, unpredictably spicy"},
+    {dex:1019, name:"Hydrapple", types:["Grass","Dragon"], trait:"overflowing, hard to contain"},
+    {dex:1013, name:"Sinistcha", types:["Grass","Ghost"], trait:"deceptively still, unsettling brew"},
+    {dex:549, name:"Lilligant-Hisui", types:["Grass","Fighting"], slug:"lilligant-hisuian", trait:"elegant but battle-ready"},
+    {dex:724, name:"Decidueye-Hisui", types:["Grass","Fighting"], slug:"decidueye-hisuian", trait:"disciplined hunter, precise strikes"},
+    {dex:103, name:"Exeggutor-Alola", types:["Grass","Dragon"], slug:"exeggutor-alolan", trait:"laid-back, surprisingly long fuse"},
+  ],
+  Normal: [
+    {dex:474, name:"Porygon-Z", types:["Normal"], trait:"glitched brilliance, unpredictable output"},
+    {dex:400, name:"Bibarel", types:["Normal", "Water"], trait:"industrious builder, dams every stream"},
+    {dex:351, name:"Castform", types:["Normal"], trait:"shifts with the weather around it"},
+    {dex:295, name:"Exploud", types:["Normal"], trait:"impossible to ignore, communicates at volume"},
+    {dex:162, name:"Furret", types:["Normal"], trait:"long, limber, endlessly curious"},
+    {dex:20, name:"Raticate", types:["Normal"], trait:"opportunistic, adapts fast"},
+    {dex:53, name:"Persian", types:["Normal"], trait:"sleek, calculating charm"},
+    {dex:113, name:"Chansey", types:["Normal"], trait:"nurturing, quietly attentive"},
+    {dex:115, name:"Kangaskhan", types:["Normal"], trait:"protective, never far from what it guards"},
+    {dex:945, name:"Grafaiai", types:["Poison","Normal"], trait:"mischievous, marks its territory"},
+    {dex:128, name:"Tauros", types:["Normal"], trait:"headstrong, charges first"},
+    {dex:132, name:"Ditto", types:["Normal"], trait:"endlessly adaptable, becomes what's needed"},
+    {dex:143, name:"Snorlax", types:["Normal"], trait:"unhurried, hard to move"},
+    {dex:217, name:"Ursaring", types:["Normal"], trait:"straightforward strength"},
+    {dex:235, name:"Smeargle", types:["Normal"], trait:"creative, leaves its mark everywhere"},
+    {dex:241, name:"Miltank", types:["Normal"], trait:"steady provider, defensive when riled"},
+    {dex:242, name:"Blissey", types:["Normal"], trait:"endlessly giving, hard to upset"},
+    {dex:289, name:"Slaking", types:["Normal"], trait:"immense potential, chronically unmotivated"},
+    {dex:301, name:"Delcatty", types:["Normal"], trait:"easygoing, low-key confident"},
+    {dex:327, name:"Spinda", types:["Normal"], trait:"unpredictable, stumbles into good outcomes"},
+    {dex:335, name:"Zangoose", types:["Normal"], trait:"sharp reflexes, old rivalries"},
+    {dex:352, name:"Kecleon", types:["Normal"], trait:"blends in, changes with its mood"},
+    {dex:424, name:"Ambipom", types:["Normal"], trait:"dexterous, playful"},
+    {dex:428, name:"Lopunny", types:["Normal"], trait:"graceful, quick to flee discomfort"},
+    {dex:432, name:"Purugly", types:["Normal"], trait:"domineering, takes up space"},
+    {dex:463, name:"Lickilicky", types:["Normal"], trait:"greedy but good-natured"},
+    {dex:508, name:"Stoutland", types:["Normal"], trait:"loyal, dependable guide"},
+    {dex:531, name:"Audino", types:["Normal"], trait:"gentle healer, tuned to others' feelings"},
+    {dex:626, name:"Bouffalant", types:["Normal"], trait:"stubborn, charges through problems"},
+    {dex:660, name:"Diggersby", types:["Normal","Ground"], trait:"industrious, unassuming"},
+    {dex:676, name:"Furfrou", types:["Normal"], trait:"meticulous about appearance, exacting standards"},
+    {dex:760, name:"Bewear", types:["Normal","Fighting"], trait:"affectionate, dangerously strong"},
+    {dex:765, name:"Oranguru", types:["Normal","Psychic"], trait:"wise, deliberately slow"},
+    {dex:773, name:"Silvally", types:["Normal"], trait:"loyal, reshapes itself for its partner"},
+    {dex:775, name:"Komala", types:["Normal"], trait:"perpetually unbothered"},
+    {dex:832, name:"Dubwool", types:["Normal"], trait:"calm leader, keeps the group steady"},
+    {dex:862, name:"Obstagoon", types:["Dark","Normal"], trait:"defiant, refuses to back down"},
+    {dex:865, name:"Sirfetch’d", types:["Fighting","Normal"], trait:"honor-bound, prepared for anything"},
+    {dex:876, name:"Indeedee", types:["Psychic","Normal"], trait:"attentive, reads intentions"},
+    {dex:899, name:"Wyrdeer", types:["Normal","Psychic"], trait:"composed, hard-won calm"},
+    {dex:901, name:"Ursaluna", types:["Ground","Normal"], trait:"heavy presence, deep memory"},
+    {dex:925, name:"Maushold", types:["Normal"], trait:"busy, never truly alone"},
+    {dex:930, name:"Arboliva", types:["Grass","Normal"], trait:"wise, settled, produces in abundance"},
+    {dex:981, name:"Farigiraf", types:["Normal","Psychic"], trait:"delayed reactions, deep processing"},
+    {dex:586, name:"Sawsbuck", types:["Normal","Grass"], trait:"graceful, changes with the seasons"},
+    {dex:780, name:"Drampa", types:["Normal","Dragon"], trait:"gentle giant, fierce when family's threatened"},
+    {dex:967, name:"Cyclizar", types:["Dragon","Normal"], trait:"restless, always looking for the next ride"},
+    {dex:982, name:"Dudunsparce", types:["Normal"], trait:"quietly persistent, longer than it looks"},
+    {dex:571, name:"Zoroark-Hisui", types:["Normal","Ghost"], slug:"zoroark-hisuian", trait:"illusions turned cold and sharp"},
+  ],
+  Fairy: [
+    {dex:36, name:"Clefable", types:["Fairy"], trait:"charming, avoids conflict"},
+    {dex:40, name:"Wigglytuff", types:["Normal","Fairy"], trait:"sensitive, puffs up when hurt"},
+    {dex:122, name:"Mr. Mime", types:["Psychic","Fairy"], trait:"expressive, boundary-setting"},
+    {dex:184, name:"Azumarill", types:["Water","Fairy"], trait:"sensitive, soaks up the room’s mood"},
+    {dex:210, name:"Granbull", types:["Fairy"], trait:"gentle despite appearances"},
+    {dex:547, name:"Whimsicott", types:["Grass","Fairy"], trait:"mischievous, impossible to pin down"},
+    {dex:756, name:"Shiinotic", types:["Grass","Fairy"], trait:"luminous, lulls things to sleep"},
+    {dex:282, name:"Gardevoir", types:["Psychic","Fairy"], trait:"protective, seeks harmony"},
+    {dex:303, name:"Mawile", types:["Steel","Fairy"], trait:"deceptively sharp, two-faced charm"},
+    {dex:671, name:"Florges", types:["Fairy"], trait:"graceful, values beauty and balance"},
+    {dex:700, name:"Sylveon", types:["Fairy"], trait:"affectionate, smooths tension"},
+    {dex:703, name:"Carbink", types:["Rock","Fairy"], trait:"delicate exterior, dense core"},
+    {dex:707, name:"Klefki", types:["Steel","Fairy"], trait:"orderly, holds onto everything"},
+    {dex:730, name:"Primarina", types:["Water","Fairy"], trait:"expressive, soothes itself through others"},
+    {dex:743, name:"Ribombee", types:["Bug","Fairy"], trait:"light, gathers what it needs"},
+    {dex:764, name:"Comfey", types:["Fairy"], trait:"clings to what it loves"},
+    {dex:778, name:"Mimikyu", types:["Ghost","Fairy"], trait:"lonely, disguises its hurt"},
+    {dex:858, name:"Hatterene", types:["Psychic","Fairy"], trait:"sensitive, easily overwhelmed by noise"},
+    {dex:861, name:"Grimmsnarl", types:["Dark","Fairy"], trait:"menacing exterior, playful streak"},
+    {dex:869, name:"Alcremie", types:["Fairy"], trait:"sweet, shaped by how it’s treated"},
+    {dex:917, name:"Dachsbun", types:["Fairy"], trait:"devoted, worn down by loyalty"},
+    {dex:959, name:"Tinkaton", types:["Fairy","Steel"], trait:"cheerful, hits harder than expected"},
+    {dex:38, name:"Ninetales-Alola", types:["Ice","Fairy"], slug:"ninetales-alolan", trait:"elegant, otherworldly grace"},
+    {dex:110, name:"Weezing-Galar", types:["Poison","Fairy"], slug:"weezing-galarian", trait:"polite menace, cleans up after itself"},
+    {dex:78, name:"Rapidash-Galar", types:["Psychic","Fairy"], slug:"rapidash-galarian", trait:"regal, untouchable pride"},
+  ],
+  Poison: [
+    {dex:49, name:"Venomoth", types:["Bug", "Poison"], trait:"drawn to light, scatters what it carries"},
+    {dex:15, name:"Beedrill", types:["Bug","Poison"], trait:"quick to anger, defends the hive"},
+    {dex:24, name:"Arbok", types:["Poison"], trait:"intimidating display, patient strike"},
+    {dex:31, name:"Nidoqueen", types:["Poison","Ground"], trait:"protective, formidable"},
+    {dex:34, name:"Nidoking", types:["Poison","Ground"], trait:"aggressive, territorial"},
+    {dex:45, name:"Vileplume", types:["Grass","Poison"], trait:"meticulous, doesn’t rush blooming"},
+    {dex:71, name:"Victreebel", types:["Grass","Poison"], trait:"patient trap, deceptively still"},
+    {dex:73, name:"Tentacruel", types:["Water","Poison"], trait:"defensive, keeps its distance"},
+    {dex:89, name:"Muk", types:["Poison"], trait:"unbothered, leaves a mess"},
+    {dex:94, name:"Gengar", types:["Ghost","Poison"], trait:"mischievous, keeps secrets well"},
+    {dex:110, name:"Weezing", types:["Poison"], trait:"noxious, keeps its distance"},
+    {dex:169, name:"Crobat", types:["Poison","Flying"], trait:"elusive, hard to read"},
+    {dex:317, name:"Swalot", types:["Poison"], trait:"indiscriminate, absorbs everything"},
+    {dex:336, name:"Seviper", types:["Poison"], trait:"grudge-holding, patient rival"},
+    {dex:407, name:"Roserade", types:["Grass","Poison"], trait:"elegant, hides a sharp edge"},
+    {dex:435, name:"Skuntank", types:["Poison","Dark"], trait:"unbothered by others’ opinions"},
+    {dex:452, name:"Drapion", types:["Poison","Dark"], trait:"guarded, dangerous when provoked"},
+    {dex:534, name:"Toxicroak", types:["Poison","Fighting"], trait:"intense, quietly ambitious"},
+    {dex:591, name:"Amoonguss", types:["Grass","Poison"], trait:"deceptive, patient trap"},
+    {dex:748, name:"Toxapex", types:["Poison","Water"], trait:"defensive, unbothered by threats"},
+    {dex:758, name:"Salazzle", types:["Poison","Fire"], trait:"confident, unbothered"},
+    {dex:545, name:"Scolipede", types:["Bug","Poison"], trait:"aggressive, leads from the front"},
+    {dex:569, name:"Garbodor", types:["Poison"], trait:"indifferent, unbothered by the mess"},
+    {dex:849, name:"Toxtricity", types:["Electric","Poison"], trait:"high energy, plays by its own rhythm"},
+    {dex:904, name:"Overqwil", types:["Dark","Poison"], trait:"defensive, quietly bitter"},
+    {dex:945, name:"Grafaiai", types:["Poison","Normal"], trait:"mischievous, marks its territory"},
+    {dex:966, name:"Revavroom", types:["Steel","Poison"], trait:"revved up, always in a hurry"},
+    {dex:970, name:"Glimmora", types:["Rock","Poison"], trait:"showy, quietly dangerous"},
+    {dex:980, name:"Clodsire", types:["Poison","Ground"], trait:"unbothered, endlessly patient"},
+    {dex:89, name:"Muk-Alola", types:["Poison","Dark"], slug:"muk-alolan", trait:"territorial, marks what's its"},
+    {dex:110, name:"Weezing-Galar", types:["Poison","Fairy"], slug:"weezing-galarian", trait:"polite menace, cleans up after itself"},
+    {dex:80, name:"Slowbro-Galar", types:["Poison","Psychic"], slug:"slowbro-galarian", trait:"reckless once provoked, otherwise placid"},
+    {dex:199, name:"Slowking-Galar", types:["Poison","Psychic"], slug:"slowking-galarian", trait:"eccentric genius, unpredictable brilliance"},
+    {dex:903, name:"Sneasler", types:["Fighting","Poison"], trait:"climbs fast, strikes without warning"},
+  ],
+  Dark: [
+    {dex:275, name:"Shiftry", types:["Grass", "Dark"], trait:"stirs up storms, arrives unannounced"},
+    {dex:262, name:"Mightyena", types:["Dark"], trait:"loyal to its pack, ruthless outside it"},
+    {dex:197, name:"Umbreon", types:["Dark"], trait:"loyal in the shadows"},
+    {dex:229, name:"Houndoom", types:["Dark","Fire"], trait:"intense, pack-driven"},
+    {dex:302, name:"Sableye", types:["Dark","Ghost"], trait:"gem-eyed trickster, hard to catch off guard"},
+    {dex:319, name:"Sharpedo", types:["Water","Dark"], trait:"aggressive, senses weakness"},
+    {dex:332, name:"Cacturne", types:["Grass","Dark"], trait:"patient ambusher"},
+    {dex:342, name:"Crawdaunt", types:["Water","Dark"], trait:"aggressive, holds a grudge"},
+    {dex:359, name:"Absol", types:["Dark"], trait:"misunderstood, senses trouble coming"},
+    {dex:430, name:"Honchkrow", types:["Dark","Flying"], trait:"commanding, watches from above"},
+    {dex:435, name:"Skuntank", types:["Poison","Dark"], trait:"unbothered by others’ opinions"},
+    {dex:442, name:"Spiritomb", types:["Ghost","Dark"], trait:"haunted by old grudges, quietly vengeful"},
+    {dex:452, name:"Drapion", types:["Poison","Dark"], trait:"guarded, dangerous when provoked"},
+    {dex:461, name:"Weavile", types:["Dark","Ice"], trait:"sharp, strikes when ready"},
+    {dex:510, name:"Liepard", types:["Dark"], trait:"sly, moves unseen"},
+    {dex:553, name:"Krookodile", types:["Ground","Dark"], trait:"patient predator"},
+    {dex:560, name:"Scrafty", types:["Dark","Fighting"], trait:"defiant, wears bravado like armor"},
+    {dex:571, name:"Zoroark", types:["Dark"], trait:"deceptive, protective of its own"},
+    {dex:828, name:"Thievul", types:["Dark"], trait:"crafty, always plotting the next move"},
+    {dex:625, name:"Bisharp", types:["Dark","Steel"], trait:"commanding, doesn’t forgive easily"},
+    {dex:630, name:"Mandibuzz", types:["Dark","Flying"], trait:"patient scavenger, watches and waits"},
+    {dex:635, name:"Hydreigon", types:["Dark","Dragon"], trait:"ravenous, hard to satisfy"},
+    {dex:658, name:"Greninja", types:["Water","Dark"], trait:"guarded, processes alone before surfacing"},
+    {dex:675, name:"Pangoro", types:["Fighting","Dark"], trait:"intimidating, protective streak"},
+    {dex:687, name:"Malamar", types:["Dark","Psychic"], trait:"manipulative, upside-down logic"},
+    {dex:727, name:"Incineroar", types:["Fire","Dark"], trait:"guarded heat, softer than it lets on"},
+    {dex:862, name:"Obstagoon", types:["Dark","Normal"], trait:"defiant, refuses to back down"},
+    {dex:861, name:"Grimmsnarl", types:["Dark","Fairy"], trait:"menacing exterior, playful streak"},
+    {dex:908, name:"Meowscarada", types:["Grass","Dark"], trait:"sly about what it’s feeling"},
+    {dex:920, name:"Lokix", types:["Bug","Dark"], trait:"blunt, unbothered by others' opinions"},
+    {dex:943, name:"Mabosstiff", types:["Dark"], trait:"loyal, imposing presence"},
+    {dex:904, name:"Overqwil", types:["Dark","Poison"], trait:"defensive, quietly bitter"},
+    {dex:962, name:"Bombirdier", types:["Flying","Dark"], trait:"opportunistic, drops things unexpectedly"},
+    {dex:983, name:"Kingambit", types:["Dark","Steel"], trait:"ruthless, commands from the back"},
+    {dex:53, name:"Persian-Alola", types:["Dark"], slug:"persian-alolan", trait:"prideful, holds a grudge"},
+    {dex:89, name:"Muk-Alola", types:["Poison","Dark"], slug:"muk-alolan", trait:"territorial, marks what's its"},
+    {dex:503, name:"Samurott-Hisui", types:["Water","Dark"], slug:"samurott-hisuian", trait:"battle-worn, honed by hardship"},
+  ],
+  Ghost: [
+    {dex:479, name:"Rotom", types:["Electric", "Ghost"], trait:"possesses machines, mischief in the wiring"},
+    {dex:94, name:"Gengar", types:["Ghost","Poison"], trait:"mischievous, keeps secrets well"},
+    {dex:292, name:"Shedinja", types:["Bug","Ghost"], trait:"hollow, unsettling stillness"},
+    {dex:302, name:"Sableye", types:["Dark","Ghost"], trait:"gem-eyed trickster, hard to catch off guard"},
+    {dex:354, name:"Banette", types:["Ghost"], trait:"resentful, holds a grudge"},
+    {dex:426, name:"Drifblim", types:["Ghost","Flying"], trait:"aimless, carried by the wind"},
+    {dex:429, name:"Mismagius", types:["Ghost"], trait:"enigmatic, casts a spell without trying"},
+    {dex:442, name:"Spiritomb", types:["Ghost","Dark"], trait:"haunted by old grudges, quietly vengeful"},
+    {dex:477, name:"Dusknoir", types:["Ghost"], trait:"watches from the shadows, never forgets"},
+    {dex:563, name:"Cofagrigus", types:["Ghost"], trait:"guarded, jealously hoards what's inside"},
+    {dex:593, name:"Jellicent", types:["Water","Ghost"], trait:"drifting, hard to hold onto"},
+    {dex:609, name:"Chandelure", types:["Ghost","Fire"], trait:"hypnotic, quietly consuming"},
+    {dex:623, name:"Golurk", types:["Ground","Ghost"], trait:"silent, ancient purpose"},
+    {dex:709, name:"Trevenant", types:["Ghost","Grass"], trait:"territorial, protective of old ground"},
+    {dex:711, name:"Gourgeist", types:["Ghost","Grass"], trait:"mischievous, festive menace"},
+    {dex:724, name:"Decidueye", types:["Grass","Ghost"], trait:"careful aim, rarely misses"},
+    {dex:770, name:"Palossand", types:["Ghost","Ground"], trait:"patient, lures you in"},
+    {dex:778, name:"Mimikyu", types:["Ghost","Fairy"], trait:"lonely, disguises its hurt"},
+    {dex:781, name:"Dhelmise", types:["Ghost","Grass"], trait:"entangling, holds on tight"},
+    {dex:947, name:"Brambleghast", types:["Grass","Ghost"], trait:"drifts and gathers, quietly ominous"},
+    {dex:855, name:"Polteageist", types:["Ghost"], trait:"patient, waits to be poured"},
+    {dex:864, name:"Cursola", types:["Ghost"], trait:"delicate but unsettling"},
+    {dex:867, name:"Runerigus", types:["Ground","Ghost"], trait:"haunted by what it carries"},
+    {dex:681, name:"Aegislash", types:["Steel","Ghost"], trait:"shifts between offense and defense"},
+    {dex:887, name:"Dragapult", types:["Dragon","Ghost"], trait:"impulsive, moves before deciding"},
+    {dex:972, name:"Houndstone", types:["Ghost"], trait:"loyal beyond death, keeps following"},
+    {dex:979, name:"Annihilape", types:["Fighting","Ghost"], trait:"pushed too far, hard to hold back"},
+    {dex:1000, name:"Gholdengo", types:["Steel","Ghost"], trait:"self-made, glittering confidence"},
+    {dex:1013, name:"Sinistcha", types:["Grass","Ghost"], trait:"deceptively still, unsettling brew"},
+    {dex:902, name:"Basculegion", types:["Water","Ghost"], trait:"driven, won’t be turned back"},
+    {dex:911, name:"Skeledirge", types:["Fire","Ghost"], trait:"warm heart, dramatic flair"},
+    {dex:937, name:"Ceruledge", types:["Fire","Ghost"], trait:"honor-bound, sharp-edged"},
+    {dex:105, name:"Marowak-Alola", types:["Fire","Ghost"], slug:"marowak-alolan", trait:"haunted by loss, burns with resolve"},
+    {dex:157, name:"Typhlosion-Hisui", types:["Fire","Ghost"], slug:"typhlosion-hisuian", trait:"haunting flame, otherworldly presence"},
+    {dex:571, name:"Zoroark-Hisui", types:["Normal","Ghost"], slug:"zoroark-hisuian", trait:"illusions turned cold and sharp"},
+  ],
+  Dragon: [
+    {dex:149, name:"Dragonite", types:["Dragon","Flying"], trait:"friendly but always ready to roam"},
+    {dex:230, name:"Kingdra", types:["Water","Dragon"], trait:"patient, strikes from the depths"},
+    {dex:330, name:"Flygon", types:["Ground","Dragon"], trait:"free-spirited, hates being fenced in"},
+    {dex:334, name:"Altaria", types:["Dragon","Flying"], trait:"dreamy wanderer, head in the clouds"},
+    {dex:373, name:"Salamence", types:["Dragon","Flying"], trait:"impatient, born to move fast"},
+    {dex:445, name:"Garchomp", types:["Dragon","Ground"], trait:"blunt, straightforward force"},
+    {dex:612, name:"Haxorus", types:["Dragon"], trait:"blunt confidence, cuts to the point"},
+    {dex:621, name:"Druddigon", types:["Dragon"], trait:"territorial, misunderstood"},
+    {dex:691, name:"Dragalge", types:["Poison","Dragon"], trait:"toxic, territorial"},
+    {dex:697, name:"Tyrantrum", types:["Rock","Dragon"], trait:"regal, commanding presence"},
+    {dex:706, name:"Goodra", types:["Dragon"], trait:"affectionate, dissolves under pressure"},
+    {dex:715, name:"Noivern", types:["Flying","Dragon"], trait:"restless, navigates by instinct"},
+    {dex:776, name:"Turtonator", types:["Fire","Dragon"], trait:"defensive, explosive when cornered"},
+    {dex:780, name:"Drampa", types:["Normal","Dragon"], trait:"gentle giant, fierce when family's threatened"},
+    {dex:784, name:"Kommo-o", types:["Dragon","Fighting"], trait:"confident, respects a good challenge"},
+    {dex:841, name:"Flapple", types:["Grass","Dragon"], trait:"tart, quick to snap"},
+    {dex:842, name:"Appletun", types:["Grass","Dragon"], trait:"sweet, easygoing, hard to rush"},
+    {dex:880, name:"Dracozolt", types:["Electric","Dragon"], trait:"mismatched power, overwhelming force"},
+    {dex:882, name:"Dracovish", types:["Water","Dragon"], trait:"ancient, single-minded hunger"},
+    {dex:887, name:"Dragapult", types:["Dragon","Ghost"], trait:"impulsive, moves before deciding"},
+    {dex:967, name:"Cyclizar", types:["Dragon","Normal"], trait:"restless, always looking for the next ride"},
+    {dex:978, name:"Tatsugiri", types:["Dragon","Water"], trait:"theatrical, plays a role"},
+    {dex:998, name:"Baxcalibur", types:["Dragon","Ice"], trait:"disciplined, cuts straight through"},
+    {dex:1018, name:"Archaludon", types:["Steel","Dragon"], trait:"bridges divides, monumental"},
+    {dex:1019, name:"Hydrapple", types:["Grass","Dragon"], trait:"overflowing, hard to contain"},
+    {dex:103, name:"Exeggutor-Alola", types:["Grass","Dragon"], slug:"exeggutor-alolan", trait:"laid-back, surprisingly long fuse"},
+    {dex:706, name:"Goodra-Hisui", types:["Steel","Dragon"], slug:"goodra-hisuian", trait:"armored sentiment, still soft inside"},
+  ],
+  Steel: [
+    {dex:208, name:"Steelix", types:["Steel","Ground"], trait:"unbreakable resolve"},
+    {dex:413, name:"Wormadam-Trash", types:["Bug","Steel"], slug:"wormadam-trash", trait:"adapted to its surroundings"},
+    {dex:205, name:"Forretress", types:["Bug","Steel"], trait:"defensive, closed off"},
+    {dex:212, name:"Scizor", types:["Bug","Steel"], trait:"sharp, precise, protective"},
+    {dex:227, name:"Skarmory", types:["Steel","Flying"], trait:"guarded, sharp-edged"},
+    {dex:306, name:"Aggron", types:["Steel","Rock"], trait:"guarded, builds slowly and solidly"},
+    {dex:376, name:"Metagross", types:["Steel","Psychic"], trait:"calculating, four steps ahead"},
+    {dex:395, name:"Empoleon", types:["Water","Steel"], trait:"loyal guardian, dignified"},
+    {dex:411, name:"Bastiodon", types:["Rock","Steel"], trait:"unshakeable defense, quiet resolve"},
+    {dex:437, name:"Bronzong", types:["Steel","Psychic"], trait:"ancient, quietly reliable"},
+    {dex:966, name:"Revavroom", types:["Steel","Poison"], trait:"revved up, always in a hurry"},
+    {dex:448, name:"Lucario", types:["Fighting","Steel"], trait:"disciplined, reads intent instantly"},
+    {dex:462, name:"Magnezone", types:["Electric","Steel"], trait:"analytical, magnetic pull"},
+    {dex:476, name:"Probopass", types:["Rock","Steel"], trait:"methodical, sticks to the plan"},
+    {dex:530, name:"Excadrill", types:["Ground","Steel"], trait:"determined, digs in and stays"},
+    {dex:589, name:"Escavalier", types:["Bug","Steel"], trait:"chivalrous, charges head-on"},
+    {dex:598, name:"Ferrothorn", types:["Grass","Steel"], trait:"defensive, painful to approach"},
+    {dex:601, name:"Klinklang", types:["Steel"], trait:"precise, runs like clockwork"},
+    {dex:625, name:"Bisharp", types:["Dark","Steel"], trait:"commanding, doesn’t forgive easily"},
+    {dex:632, name:"Durant", types:["Bug","Steel"], trait:"coordinated, defends the colony"},
+    {dex:681, name:"Aegislash", types:["Steel","Ghost"], trait:"shifts between offense and defense"},
+    {dex:707, name:"Klefki", types:["Steel","Fairy"], trait:"orderly, holds onto everything"},
+    {dex:823, name:"Corviknight", types:["Flying","Steel"], trait:"dependable, carries the weight"},
+    {dex:618, name:"Stunfisk-Galar", types:["Ground","Steel"], slug:"stunfisk-galarian", trait:"camouflaged trap, waits it out"},
+    {dex:777, name:"Togedemaru", types:["Electric","Steel"], trait:"spiky, stores static eagerly"},
+    {dex:809, name:"Melmetal", types:["Steel"], trait:"immense, slow to anger"},
+    {dex:863, name:"Perrserker", types:["Steel"], trait:"disciplined, battle-hardened"},
+    {dex:879, name:"Copperajah", types:["Steel"], trait:"steady strength, patient climb"},
+    {dex:959, name:"Tinkaton", types:["Fairy","Steel"], trait:"cheerful, hits harder than expected"},
+    {dex:968, name:"Orthworm", types:["Steel"], trait:"smooth, glides through obstacles"},
+    {dex:983, name:"Kingambit", types:["Dark","Steel"], trait:"ruthless, commands from the back"},
+    {dex:1000, name:"Gholdengo", types:["Steel","Ghost"], trait:"self-made, glittering confidence"},
+    {dex:1018, name:"Archaludon", types:["Steel","Dragon"], trait:"bridges divides, monumental"},
+    {dex:28, name:"Sandslash-Alola", types:["Ice","Steel"], slug:"sandslash-alolan", trait:"icy composure, sharpened edges"},
+    {dex:51, name:"Dugtrio-Alola", types:["Ground","Steel"], slug:"dugtrio-alolan", trait:"vain, keeps up appearances"},
+    {dex:706, name:"Goodra-Hisui", types:["Steel","Dragon"], slug:"goodra-hisuian", trait:"armored sentiment, still soft inside"},
+  ],
+  Electric: [
+    {dex:479, name:"Rotom", types:["Electric", "Ghost"], trait:"possesses machines, mischief in the wiring"},
+    {dex:417, name:"Pachirisu", types:["Electric"], trait:"restless, stockpiles more than it needs"},
+    {dex:312, name:"Minun", types:["Electric"], trait:"supportive spark, better in a pair"},
+    {dex:311, name:"Plusle", types:["Electric"], trait:"cheerleader energy, amplifies others"},
+    {dex:26, name:"Raichu", types:["Electric"], trait:"quick, does things its own way"},
+    {dex:101, name:"Electrode", types:["Electric"], trait:"volatile, ready to blow"},
+    {dex:135, name:"Jolteon", types:["Electric"], trait:"unpredictable bursts of energy"},
+    {dex:181, name:"Ampharos", types:["Electric"], trait:"bright ideas, lights the way"},
+    {dex:310, name:"Manectric", types:["Electric"], trait:"restless, runs on its own current"},
+    {dex:405, name:"Luxray", types:["Electric"], trait:"sees through pretense easily"},
+    {dex:523, name:"Zebstrika", types:["Electric"], trait:"fast, sparks fly when riled up"},
+    {dex:462, name:"Magnezone", types:["Electric","Steel"], trait:"analytical, magnetic pull"},
+    {dex:466, name:"Electivire", types:["Electric"], trait:"volatile, high output"},
+    {dex:587, name:"Emolga", types:["Electric","Flying"], trait:"playful nonconformist, hard to predict"},
+    {dex:596, name:"Galvantula", types:["Bug","Electric"], trait:"patient, waits in its web"},
+    {dex:604, name:"Eelektross", types:["Electric"], trait:"unconventional, adapts on the fly"},
+    {dex:618, name:"Stunfisk", types:["Ground","Electric"], trait:"deceptively still"},
+    {dex:695, name:"Heliolisk", types:["Electric","Normal"], trait:"energetic, basks openly"},
+    {dex:702, name:"Dedenne", types:["Electric","Fairy"], trait:"chatty, stores up energy"},
+    {dex:738, name:"Vikavolt", types:["Bug","Electric"], trait:"direct, powerful in a straight line"},
+    {dex:777, name:"Togedemaru", types:["Electric","Steel"], trait:"spiky, stores static eagerly"},
+    {dex:836, name:"Boltund", types:["Electric"], trait:"energetic, loyal runner"},
+    {dex:871, name:"Pincurchin", types:["Electric"], trait:"sharp, keeps its distance"},
+    {dex:923, name:"Pawmot", types:["Electric","Fighting"], trait:"eager, always ready to spar"},
+    {dex:849, name:"Toxtricity", types:["Electric","Poison"], trait:"high energy, plays by its own rhythm"},
+    {dex:877, name:"Morpeko", types:["Electric","Dark"], trait:"moody, driven by appetite"},
+    {dex:880, name:"Dracozolt", types:["Electric","Dragon"], trait:"mismatched power, overwhelming force"},
+    {dex:881, name:"Arctozolt", types:["Electric","Ice"], trait:"ancient, slow-building cold fury"},
+    {dex:939, name:"Bellibolt", types:["Electric"], trait:"laid-back, surprising output"},
+    {dex:941, name:"Kilowattrel", types:["Electric","Flying"], trait:"energetic, rarely lands"},
+    {dex:26, name:"Raichu-Alola", types:["Electric","Psychic"], slug:"raichu-alolan", trait:"surfs on its own tail, effortlessly cool"},
+    {dex:76, name:"Golem-Alola", types:["Rock","Electric"], slug:"golem-alolan", trait:"charged up, rolls with more force"},
+    {dex:101, name:"Electrode-Hisui", types:["Electric","Grass"], slug:"electrode-hisuian", trait:"erratic, charged by its surroundings"},
+  ],
+  Fighting: [
+    {dex:62, name:"Poliwrath", types:["Water","Fighting"], trait:"disciplined, steady under pressure"},
+    {dex:68, name:"Machamp", types:["Fighting"], trait:"fully arrived, results speak for themselves"},
+    {dex:106, name:"Hitmonlee", types:["Fighting"], trait:"precise, keeps its distance"},
+    {dex:107, name:"Hitmonchan", types:["Fighting"], trait:"disciplined, controlled bursts"},
+    {dex:214, name:"Heracross", types:["Bug","Fighting"], trait:"powerful, competitive drive"},
+    {dex:237, name:"Hitmontop", types:["Fighting"], trait:"balanced, keeps spinning through setbacks"},
+    {dex:257, name:"Blaziken", types:["Fire","Fighting"], trait:"fights first, thinks later"},
+    {dex:286, name:"Breloom", types:["Grass","Fighting"], trait:"aggressive, deceptively fast"},
+    {dex:297, name:"Hariyama", types:["Fighting"], trait:"good-natured, overwhelming force"},
+    {dex:308, name:"Medicham", types:["Fighting","Psychic"], trait:"disciplined, inward focus"},
+    {dex:392, name:"Infernape", types:["Fire","Fighting"], trait:"restless competitor, natural leader"},
+    {dex:448, name:"Lucario", types:["Fighting","Steel"], trait:"disciplined, reads intent instantly"},
+    {dex:475, name:"Gallade", types:["Psychic","Fighting"], trait:"chivalrous, decisive"},
+    {dex:500, name:"Emboar", types:["Fire","Fighting"], trait:"warm-hearted, wears feelings openly"},
+    {dex:534, name:"Toxicroak", types:["Poison","Fighting"], trait:"intense, quietly ambitious"},
+    {dex:538, name:"Throh", types:["Fighting"], trait:"generous, plays by the rules"},
+    {dex:539, name:"Sawk", types:["Fighting"], trait:"single-minded, trains relentlessly"},
+    {dex:560, name:"Scrafty", types:["Dark","Fighting"], trait:"defiant, wears bravado like armor"},
+    {dex:620, name:"Mienshao", types:["Fighting"], trait:"elegant, hits hard and retreats"},
+    {dex:652, name:"Chesnaught", types:["Grass","Fighting"], trait:"protective instinct as its default"},
+    {dex:675, name:"Pangoro", types:["Fighting","Dark"], trait:"intimidating, protective streak"},
+    {dex:701, name:"Hawlucha", types:["Fighting","Flying"], trait:"showy, thrives on an audience"},
+    {dex:740, name:"Crabominable", types:["Fighting","Ice"], trait:"short-tempered, hits hard"},
+    {dex:760, name:"Bewear", types:["Normal","Fighting"], trait:"affectionate, dangerously strong"},
+    {dex:766, name:"Passimian", types:["Fighting"], trait:"loyal to its troop, teamwork-driven"},
+    {dex:865, name:"Sirfetch’d", types:["Fighting","Normal"], trait:"honor-bound, prepared for anything"},
+    {dex:923, name:"Pawmot", types:["Electric","Fighting"], trait:"eager, always ready to spar"},
+    {dex:784, name:"Kommo-o", types:["Dragon","Fighting"], trait:"confident, respects a good challenge"},
+    {dex:853, name:"Grapploct", types:["Fighting"], trait:"disciplined grappler, patient technician"},
+    {dex:870, name:"Falinks", types:["Fighting"], trait:"synchronized, moves as one"},
+    {dex:892, name:"Urshifu", types:["Fighting","Dark"], trait:"disciplined, singular focus"},
+    {dex:973, name:"Flamigo", types:["Flying","Fighting"], trait:"flighty until it commits"},
+    {dex:979, name:"Annihilape", types:["Fighting","Ghost"], trait:"pushed too far, hard to hold back"},
+    {dex:914, name:"Quaquaval", types:["Water","Fighting"], trait:"passionate, channels feeling into motion"},
+    {dex:903, name:"Sneasler", types:["Fighting","Poison"], trait:"climbs fast, strikes without warning"},
+    {dex:549, name:"Lilligant-Hisui", types:["Grass","Fighting"], slug:"lilligant-hisuian", trait:"elegant but battle-ready"},
+    {dex:724, name:"Decidueye-Hisui", types:["Grass","Fighting"], slug:"decidueye-hisuian", trait:"disciplined hunter, precise strikes"},
+    {dex:128, name:"Tauros-Paldea-Combat", types:["Fighting"], slug:"tauros-paldea-combat-breed", trait:"headstrong brawler, no hesitation"},
+    {dex:128, name:"Tauros-Paldea-Blaze", types:["Fighting","Fire"], slug:"tauros-paldea-blaze-breed", trait:"hot-tempered, charges with fire"},
+    {dex:128, name:"Tauros-Paldea-Aqua", types:["Fighting","Water"], slug:"tauros-paldea-aqua-breed", trait:"relentless, crashes like a wave"},
+  ],
+  Ice: [
+    {dex:471, name:"Glaceon", types:["Ice"], trait:"cool composure, freezes the air around it"},
+    {dex:87, name:"Dewgong", types:["Water","Ice"], trait:"graceful, unhurried"},
+    {dex:91, name:"Cloyster", types:["Water","Ice"], trait:"guarded, sharp when provoked"},
+    {dex:124, name:"Jynx", types:["Ice","Psychic"], trait:"theatrical, magnetic"},
+    {dex:131, name:"Lapras", types:["Water","Ice"], trait:"carries others without being asked"},
+    {dex:225, name:"Delibird", types:["Ice","Flying"], trait:"generous, gives at inconvenient times"},
+    {dex:362, name:"Glalie", types:["Ice"], trait:"cold stillness, sudden strikes"},
+    {dex:365, name:"Walrein", types:["Ice","Water"], trait:"imposing, unhurried"},
+    {dex:461, name:"Weavile", types:["Dark","Ice"], trait:"sharp, strikes when ready"},
+    {dex:473, name:"Mamoswine", types:["Ice","Ground"], trait:"ancient strength, steady gait"},
+    {dex:478, name:"Froslass", types:["Ice","Ghost"], trait:"cold, lingering presence"},
+    {dex:584, name:"Vanilluxe", types:["Ice"], trait:"conjoined, doubled resolve"},
+    {dex:614, name:"Beartic", types:["Ice"], trait:"patient, powerful once provoked"},
+    {dex:615, name:"Cryogonal", types:["Ice"], trait:"detached, coolly analytical"},
+    {dex:699, name:"Aurorus", types:["Rock","Ice"], trait:"ancient, quietly majestic"},
+    {dex:713, name:"Avalugg", types:["Ice"], trait:"immense, slow to redirect"},
+    {dex:740, name:"Crabominable", types:["Fighting","Ice"], trait:"short-tempered, hits hard"},
+    {dex:866, name:"Mr. Rime", types:["Ice","Psychic"], trait:"theatrical, precise"},
+    {dex:873, name:"Frosmoth", types:["Ice","Bug"], trait:"drawn to the cold, quietly resilient"},
+    {dex:875, name:"Eiscue", types:["Ice"], trait:"guarded exterior, softer underneath"},
+    {dex:881, name:"Arctozolt", types:["Electric","Ice"], trait:"ancient, slow-building cold fury"},
+    {dex:883, name:"Arctovish", types:["Water","Ice"], trait:"ancient, cold patience"},
+    {dex:975, name:"Cetitan", types:["Ice"], trait:"massive, unhurried strength"},
+    {dex:998, name:"Baxcalibur", types:["Dragon","Ice"], trait:"disciplined, cuts straight through"},
+    {dex:28, name:"Sandslash-Alola", types:["Ice","Steel"], slug:"sandslash-alolan", trait:"icy composure, sharpened edges"},
+    {dex:38, name:"Ninetales-Alola", types:["Ice","Fairy"], slug:"ninetales-alolan", trait:"elegant, otherworldly grace"},
+    {dex:713, name:"Avalugg-Hisui", types:["Ice","Rock"], slug:"avalugg-hisuian", trait:"ancient, weathers everything"},
+    {dex:555, name:"Darmanitan-Galar", types:["Ice"], slug:"darmanitan-galarian-standard", trait:"cold fury, slow to provoke"},
+  ],
+  Bug: [
+    {dex:49, name:"Venomoth", types:["Bug", "Poison"], trait:"drawn to light, scatters what it carries"},
+    {dex:47, name:"Parasect", types:["Bug", "Grass"], trait:"host to something else, quietly overtaken"},
+    {dex:12, name:"Butterfree", types:["Bug","Flying"], trait:"gentle, guided by scent"},
+    {dex:15, name:"Beedrill", types:["Bug","Poison"], trait:"quick to anger, defends the hive"},
+    {dex:127, name:"Pinsir", types:["Bug"], trait:"powerful grip, refuses to let go"},
+    {dex:166, name:"Ledian", types:["Bug","Flying"], trait:"hopeful, a little unlucky"},
+    {dex:168, name:"Ariados", types:["Bug","Poison"], trait:"patient, weaves a trap and waits"},
+    {dex:205, name:"Forretress", types:["Bug","Steel"], trait:"defensive, closed off"},
+    {dex:212, name:"Scizor", types:["Bug","Steel"], trait:"sharp, precise, protective"},
+    {dex:213, name:"Shuckle", types:["Bug","Rock"], trait:"patient, quietly hoarding"},
+    {dex:214, name:"Heracross", types:["Bug","Fighting"], trait:"powerful, competitive drive"},
+    {dex:267, name:"Beautifly", types:["Bug","Flying"], trait:"drawn to what\u2019s sweet"},
+    {dex:269, name:"Dustox", types:["Bug","Poison"], trait:"drawn to moonlight, unbothered by dark"},
+    {dex:545, name:"Scolipede", types:["Bug","Poison"], trait:"aggressive, leads from the front"},
+    {dex:920, name:"Lokix", types:["Bug","Dark"], trait:"blunt, unbothered by others' opinions"},
+    {dex:284, name:"Masquerain", types:["Bug","Flying"], trait:"flighty, easily distracted"},
+    {dex:291, name:"Ninjask", types:["Bug","Flying"], trait:"impatient, always in motion"},
+    {dex:292, name:"Shedinja", types:["Bug","Ghost"], trait:"hollow, unsettling stillness"},
+    {dex:313, name:"Volbeat", types:["Bug"], trait:"social, signals to its group"},
+    {dex:314, name:"Illumise", types:["Bug"], trait:"devoted, guides others home"},
+    {dex:348, name:"Armaldo", types:["Rock","Bug"], trait:"armored, tenacious"},
+    {dex:402, name:"Kricketune", types:["Bug"], trait:"rhythmic, performs for a crowd"},
+    {dex:413, name:"Wormadam", types:["Bug","Grass"], trait:"adapted to its surroundings"},
+    {dex:413, name:"Wormadam-Trash", types:["Bug","Steel"], slug:"wormadam-trash", trait:"adapted to its surroundings"},
+    {dex:414, name:"Mothim", types:["Bug","Flying"], trait:"drawn to what glimmers"},
+    {dex:416, name:"Vespiquen", types:["Bug","Flying"], trait:"commanding, protective of its own"},
+    {dex:469, name:"Yanmega", types:["Bug","Flying"], trait:"relentless, fast pursuit"},
+    {dex:542, name:"Leavanny", types:["Bug","Grass"], trait:"nurturing, meticulous nest-builder"},
+    {dex:558, name:"Crustle", types:["Bug","Rock"], trait:"territorial, carries its home"},
+    {dex:589, name:"Escavalier", types:["Bug","Steel"], trait:"chivalrous, charges head-on"},
+    {dex:596, name:"Galvantula", types:["Bug","Electric"], trait:"patient, waits in its web"},
+    {dex:617, name:"Accelgor", types:["Bug"], trait:"fast, shed its old defenses"},
+    {dex:632, name:"Durant", types:["Bug","Steel"], trait:"coordinated, defends the colony"},
+    {dex:666, name:"Vivillon", types:["Bug","Flying"], trait:"shaped by where it\u2019s from"},
+    {dex:738, name:"Vikavolt", types:["Bug","Electric"], trait:"direct, powerful in a straight line"},
+    {dex:743, name:"Ribombee", types:["Bug","Fairy"], trait:"light, gathers what it needs"},
+    {dex:752, name:"Araquanid", types:["Water","Bug"], trait:"protective, carries others in its bubble"},
+    {dex:768, name:"Golisopod", types:["Bug","Water"], trait:"guarded, retreats before it strikes"},
+    {dex:826, name:"Orbeetle", types:["Bug","Psychic"], trait:"calculating, sees the whole board"},
+    {dex:851, name:"Centiskorch", types:["Fire","Bug"], trait:"aggressive, relentless"},
+    {dex:873, name:"Frosmoth", types:["Ice","Bug"], trait:"drawn to the cold, quietly resilient"},
+    {dex:918, name:"Spidops", types:["Bug"], trait:"methodical trapper, patient ambush"},
+    {dex:954, name:"Rabsca", types:["Bug","Psychic"], trait:"carries its group forward"},
+  ],
+};
+
+// --- Official Pokédex color categories + per-Pokémon color map (reused) ---
+const TYPE_COLORS = {
+  Fire:'#F08030', Water:'#6890F0', Grass:'#78C850', Electric:'#F8D030',
+  Psychic:'#F85888', Ground:'#E0C068', Rock:'#B8A038', Flying:'#A890F0',
+  Poison:'#A040A0', Dark:'#705848', Fairy:'#EE99AC', Steel:'#B8B8D0',
+  Dragon:'#7038F8', Ghost:'#705898', Normal:'#A8A878',
+  Fighting:'#C03028', Ice:'#98D8D8', Bug:'#A8B820'
+};
+// Used to retheme the page per Sun sign typing (see applySignTheme below). Some raw
+// TYPE_COLORS values (Dark's brown, Ghost's muted purple, and others) are too dark to
+// serve as text-on-dark-background or as a button background with dark text on top —
+// both real jobs the gold accent color already does throughout this page — so
+// accentFromType lifts lightness/saturation to a legible floor while preserving hue,
+// rather than using the raw badge color directly.
+function hexToHsl(hex){
+  hex = hex.replace('#','');
+  const r = parseInt(hex.substr(0,2),16)/255;
+  const g = parseInt(hex.substr(2,2),16)/255;
+  const b = parseInt(hex.substr(4,2),16)/255;
+  const max = Math.max(r,g,b), min = Math.min(r,g,b);
+  let h, s, l = (max+min)/2;
+  if (max === min) { h = s = 0; }
+  else {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h /= 6;
+  }
+  return [h*360, s*100, l*100];
+}
+function hslToHex(h,s,l){
+  h/=360; s/=100; l/=100;
+  let r,g,b;
+  if (s===0){ r=g=b=l; }
+  else {
+    const hue2rgb = (p,q,t) => {
+      if (t<0) t+=1; if (t>1) t-=1;
+      if (t<1/6) return p+(q-p)*6*t;
+      if (t<1/2) return q;
+      if (t<2/3) return p+(q-p)*(2/3-t)*6;
+      return p;
+    };
+    const q = l<0.5 ? l*(1+s) : l+s-l*s;
+    const p = 2*l-q;
+    r = hue2rgb(p,q,h+1/3); g = hue2rgb(p,q,h); b = hue2rgb(p,q,h-1/3);
+  }
+  const toHex = x => Math.round(x*255).toString(16).padStart(2,'0');
+  return '#'+toHex(r)+toHex(g)+toHex(b);
+}
+// Same 60%-lightness floor the current default gold (#e8b84b) already sits at, and the
+// same saturation/lightness ratios measured between it and --gold-dim (#a3833a), so a
+// type-derived theme feels like the same design system, not a different one. In light
+// mode the direction flips: instead of lifting lightness up (for legibility as light
+// text on a dark background), it's capped down (for legibility as dark text on a
+// light/white background) — and the "dim" variant recedes the opposite way in each
+// mode too: darker/less saturated to fade into dark navy, lighter/paler to fade into
+// white.
+function accentFromType(hex, isLight){
+  let [h,s,l] = hexToHsl(hex);
+  let accentL, accentS, dimL, dimS;
+  if (isLight){
+    accentL = Math.min(l, 42);
+    accentS = Math.max(s, 60);
+    dimL = Math.min(accentL + 30, 78);
+    dimS = accentS * 0.5;
+  } else {
+    accentL = Math.max(l, 60);
+    accentS = Math.max(s, 55);
+    dimL = accentL * 0.72;
+    dimS = accentS * 0.62;
+  }
+  const accent = hslToHex(h, accentS, accentL);
+  const dim = hslToHex(h, dimS, dimL);
+  return [accent, dim];
+}
+function hexToRgbString(hex){
+  hex = hex.replace('#','');
+  const r = parseInt(hex.substr(0,2),16);
+  const g = parseInt(hex.substr(2,2),16);
+  const b = parseInt(hex.substr(4,2),16);
+  return `${r},${g},${b}`;
+}
+// The real, official Game Freak classification (introduced Ruby/Sapphire as the
+// Pokédex's "body color" search filter, still present as internal data today) — exactly
+// 10 categories, no Orange (warm-orange species like Charizard are filed under Red).
+// Representative hex per category, chosen to each carry a genuine hue (including White/
+// Black/Gray, given a slight tint here) so accentFromType's saturation floor has
+// something real to work with rather than forcing a random hue onto true neutral gray.
+const POKEDEX_COLOR_HEX = {
+  Red:'#E63946', Blue:'#457B9D', Yellow:'#F4C430', Green:'#57A639',
+  Black:'#4A3F5C', Brown:'#8B5E3C', Purple:'#9B5DE5', Gray:'#8891A8',
+  White:'#D8D0E8', Pink:'#F27CA5'
+};
+// Official color category per avatar in the pool — sourced from knowledge of each
+// species' design, not fetched/verified line-by-line the way CHINESE_NEW_YEAR was.
+// Flag anything that looks wrong; easy to correct individually.
+const POKEMON_COLOR = {
+  Abomasnow:'White', Absol:'White', Accelgor:'Purple', Aegislash:'Gray', Aerodactyl:'Purple',
+  Aggron:'Gray', Alakazam:'Yellow', Alcremie:'White', Alomomola:'Pink', Altaria:'Blue',
+  Ambipom:'Purple', Amoonguss:'Red', Ampharos:'Yellow', Annihilape:'Gray', Appletun:'Green',
+  Araquanid:'Blue', Arbok:'Purple', Arboliva:'Green', Arcanine:'Brown', 'Arcanine-Hisui':'White',
+  Archaludon:'Blue', Archeops:'Brown', Arctovish:'Blue', Arctozolt:'Yellow', Ariados:'Red',
+  Armaldo:'Red', Armarouge:'Red', Audino:'Pink', Aurorus:'Blue', Avalugg:'White',
+  'Avalugg-Hisui':'Brown', Azumarill:'Blue', Banette:'Purple', Barbaracle:'Blue', Barraskewda:'Blue',
+  Basculegion:'Gray', Basculin:'Red', Bastiodon:'Gray', Baxcalibur:'Blue', Beartic:'White',
+  Beautifly:'Purple', Beedrill:'Yellow', Beheeyem:'Yellow', Bellibolt:'Yellow', Bellossom:'Green',
+  Bewear:'Pink', Bibarel:'Brown', Bisharp:'Gray', Blastoise:'Blue', Blaziken:'Red',
+  Blissey:'Pink', Boltund:'Yellow', Bombirdier:'Gray', Bouffalant:'Brown', Brambleghast:'Brown',
+  Braviary:'Red', 'Braviary-Hisui':'Blue', Breloom:'Brown', Bronzong:'Blue', Bruxish:'Pink',
+  Butterfree:'Purple', Cacturne:'Green', Camerupt:'Red', Carbink:'Blue', Carnivine:'Green',
+  Carracosta:'Blue', Castform:'White', Centiskorch:'Red', Ceruledge:'Blue', Cetitan:'White',
+  Chandelure:'Purple', Chansey:'Pink', Charizard:'Red', Chatot:'Green', Cherrim:'Pink',
+  Chesnaught:'Green', Chimecho:'Blue', Cinderace:'White', Clawitzer:'Blue', Claydol:'Brown', Clefable:'Pink',
+  Clodsire:'Pink', Cloyster:'Purple', Coalossal:'Gray', Cofagrigus:'Yellow', Comfey:'Pink',
+  Copperajah:'Brown', Corsola:'Pink', Corviknight:'Black', Crabominable:'White', Cradily:'Purple',
+  Cramorant:'Gray', Crawdaunt:'Red', Crobat:'Purple', Crustle:'Brown', Cryogonal:'Blue',
+  Cursola:'Pink', Cyclizar:'Green', Dachsbun:'Brown', Darmanitan:'Red', 'Darmanitan-Galar':'White',
+  Decidueye:'Brown', 'Decidueye-Hisui':'Green', Dedenne:'Yellow', Delcatty:'White', Delibird:'White',
+  Delphox:'Yellow', Dewgong:'White', Dhelmise:'Green', Diggersby:'Brown', Ditto:'Purple',
+  Dodrio:'Brown', Dondozo:'Blue', Donphan:'Gray', Dracovish:'Blue', Dracozolt:'Yellow',
+  Dragalge:'Purple', Dragapult:'Purple', Dragonite:'Brown', Drampa:'White', Drapion:'Purple',
+  Drednaw:'Blue', Drifblim:'Purple', Druddigon:'Red', Dubwool:'White', Dudunsparce:'Brown',
+  Dugtrio:'Brown', 'Dugtrio-Alola':'Yellow', Durant:'Black', Dusknoir:'Gray', Dustox:'Purple',
+  Eelektross:'Yellow', Eiscue:'Blue', Eldegoss:'White', Electivire:'Yellow', Electrode:'Red',
+  'Electrode-Hisui':'Blue', Emboar:'Red', Emolga:'Black', Empoleon:'Blue', Escavalier:'Blue',
+  Espathra:'White', Espeon:'Purple', Excadrill:'Gray', Exeggutor:'Yellow', 'Exeggutor-Alola':'Brown',
+  Exploud:'Gray', Falinks:'Yellow', 'Farfetch’d':'Brown', Farigiraf:'Yellow', Fearow:'Brown',
+  Feraligatr:'Blue', Ferrothorn:'Green', Flamigo:'Pink', Flapple:'Red', Flareon:'Red',
+  Floatzel:'Yellow', Florges:'Pink', Flygon:'Green', Forretress:'Blue', Froslass:'White',
+  Frosmoth:'White', Furfrou:'White', Furret:'Brown', Gallade:'White', Galvantula:'Yellow',
+  Garbodor:'Purple', Garchomp:'Blue', Gardevoir:'White', Garganacl:'Gray', Gastrodon:'Pink',
+  Gengar:'Purple', Gholdengo:'Yellow', Gigalith:'Gray', Glaceon:'Blue', Glalie:'Blue',
+  Glimmora:'Pink', Gliscor:'Purple', Gogoat:'Brown', Golduck:'Blue', Golem:'Gray',
+  'Golem-Alola':'Brown', Golisopod:'Yellow', Golurk:'Gray', Goodra:'Purple', 'Goodra-Hisui':'Blue',
+  Gorebyss:'Pink', Gothitelle:'Black', Gourgeist:'Brown', Grafaiai:'Purple', Granbull:'Blue',
+  Grapploct:'Purple', Greninja:'Blue', Grimmsnarl:'Purple', Grumpig:'Pink', Gyarados:'Blue',
+  Hariyama:'Yellow', Hatterene:'White', Hawlucha:'Red', Haxorus:'Gray', Heatmor:'Red',
+  Heliolisk:'Yellow', Heracross:'Blue', Hippowdon:'Yellow', Hitmonchan:'Brown', Hitmonlee:'Brown',
+  Hitmontop:'Gray', Honchkrow:'Black', Houndoom:'Black', Houndstone:'White', Huntail:'Blue',
+  Hydrapple:'Green', Hydreigon:'Blue', Hypno:'Yellow', Illumise:'Purple', Incineroar:'Red',
+  Indeedee:'White', Infernape:'Red', Inteleon:'Blue', Jellicent:'Blue', Jolteon:'Yellow',
+  Jumpluff:'Blue', Jynx:'Purple', Kabutops:'Brown', Kangaskhan:'Brown', Kecleon:'Green',
+  Kilowattrel:'Yellow', Kingambit:'Gray', Kingdra:'Blue', Kingler:'Red', Klawf:'Red',
+  Kleavor:'Blue', Klefki:'Gray', Klinklang:'Gray', Komala:'Gray', 'Kommo-o':'Green',
+  Kricketune:'Brown', Krookodile:'Brown', Lanturn:'Blue', Lapras:'Blue', Leafeon:'Green',
+  Leavanny:'Green', Ledian:'Red', Lickilicky:'Pink', Liepard:'Purple', Lilligant:'White',
+  'Lilligant-Hisui':'Red', Lokix:'Black', Lopunny:'Brown', Lucario:'Blue', Ludicolo:'Green',
+  Lumineon:'Blue', Lunatone:'Gray', Lurantis:'Pink', Luvdisc:'Pink', Luxray:'Black',
+  Lycanroc:'Brown', Mabosstiff:'Black', Machamp:'Gray', Magcargo:'Red', Magmortar:'Red',
+  Magnezone:'Gray', Malamar:'Purple', Mamoswine:'Brown', Mandibuzz:'Brown', Manectric:'Blue',
+  Mantine:'Blue', Maractus:'Green', Marowak:'Brown', 'Marowak-Alola':'Black', Masquerain:'Purple',
+  Maushold:'Brown', Mawile:'Yellow', Medicham:'Gray', Meganium:'Green', Melmetal:'Gray',
+  Meowscarada:'Green', Meowstic:'White', Metagross:'Blue', Mienshao:'White', Mightyena:'Gray',
+  Milotic:'Blue', Miltank:'Pink', Mimikyu:'Black', Minior:'Red', Minun:'Blue',
+  Mismagius:'Purple', Morpeko:'Yellow', Mothim:'Brown', 'Mr. Mime':'Pink', 'Mr. Rime':'Black',
+  Mudsdale:'Brown', Muk:'Purple', 'Muk-Alola':'Purple', Musharna:'Pink', Nidoking:'Purple',
+  Nidoqueen:'Blue', Ninetales:'White', 'Ninetales-Alola':'White', Ninjask:'Yellow', Noctowl:'Brown',
+  Noivern:'Purple', Nosepass:'Blue', Obstagoon:'Black', Octillery:'Red', Omastar:'Blue',
+  Oranguru:'Brown', Orbeetle:'Blue', Oricorio:'Red', Orthworm:'Gray', Overqwil:'Purple',
+  Pachirisu:'White', Palafin:'Blue', Palossand:'Yellow', Pangoro:'Black', Parasect:'Red',
+  Passimian:'Brown', Pawmot:'Yellow', Pelipper:'Blue', Perrserker:'Gray', Persian:'White',
+  'Persian-Alola':'Purple', Pidgeot:'Brown', Pincurchin:'Yellow', Pinsir:'Brown', Plusle:'Red',
+  Poliwrath:'Blue', Politoed:'Green', Polteageist:'Purple', 'Porygon-Z':'Pink', Primarina:'Blue',
+  Probopass:'Gray', Purugly:'Gray', Pyroar:'Yellow', Pyukumuku:'Brown', Quagsire:'Blue',
+  Quaquaval:'Blue', Rabsca:'Yellow', Raichu:'Yellow', 'Raichu-Alola':'Pink', Rampardos:'Gray',
+  Rapidash:'White', 'Rapidash-Galar':'White', Raticate:'Purple', Relicanth:'Blue', Reuniclus:'White',
+  Revavroom:'Purple', Rhyperior:'Gray', Ribombee:'Yellow', Rillaboom:'Brown', Roserade:'Green',
+  Rotom:'Red', Runerigus:'Gray', Sableye:'Purple', Salamence:'Blue', Salazzle:'Purple',
+  Samurott:'Blue', 'Samurott-Hisui':'White', Sandaconda:'Yellow', Sandslash:'Yellow', 'Sandslash-Alola':'White',
+  Sawk:'Yellow', Sawsbuck:'Brown', Sceptile:'Green', Scizor:'Red', Scolipede:'Purple',
+  Scovillain:'Red', Scrafty:'Yellow', Seaking:'Red', Seismitoad:'Blue', Serperior:'Green',
+  Seviper:'Black', Sharpedo:'Blue', Shedinja:'Brown', Shiftry:'Brown', Shiinotic:'Purple',
+  Shuckle:'Yellow', Sigilyph:'Blue', Silvally:'Gray', Simipour:'Blue', Simisage:'Green',
+  Simisear:'Red', Sinistcha:'Green', 'Sirfetch’d':'Brown', Skarmory:'Gray', Skeledirge:'Red',
+  Skuntank:'Purple', Slaking:'Brown', Slowbro:'Pink', 'Slowbro-Galar':'Pink', Slowking:'Pink',
+  'Slowking-Galar':'Yellow', Smeargle:'White', Sneasler:'Purple', Snorlax:'Blue', Solrock:'Red',
+  Spidops:'Purple', Spinda:'White', Spiritomb:'Purple', Squawkabilly:'Green', Staraptor:'Brown',
+  Starmie:'Purple', Steelix:'Gray', Stonjourner:'Gray', Stoutland:'Brown', Stunfisk:'Yellow',
+  'Stunfisk-Galar':'Brown', Sudowoodo:'Brown', Sunflora:'Yellow', Swalot:'Purple', Swampert:'Blue',
+  Swanna:'White', Swellow:'Red', Swoobat:'Purple', Sylveon:'Pink', Talonflame:'Red',
+  Tangela:'Blue', Tangrowth:'Blue', Tatsugiri:'Blue', Tauros:'Brown', 'Tauros-Paldea-Aqua':'Blue',
+  'Tauros-Paldea-Blaze':'Red', 'Tauros-Paldea-Combat':'Brown', Tentacruel:'Blue', Thievul:'Brown', Throh:'Blue',
+  Tinkaton:'Pink', Toedscruel:'Purple', Togedemaru:'Yellow', Togekiss:'White', Torkoal:'Black',
+  Torterra:'Green', Toucannon:'Red', Toxapex:'Purple', Toxicroak:'Purple', Toxtricity:'Purple',
+  Trevenant:'Brown', Tropius:'Green', Tsareena:'Pink', Turtonator:'Blue', Typhlosion:'Blue',
+  'Typhlosion-Hisui':'Purple', Tyranitar:'Green', Tyrantrum:'Brown', Umbreon:'Black', Unfezant:'Purple',
+  Unown:'Black', Ursaluna:'Brown', Ursaring:'Brown', Urshifu:'Black', Vanilluxe:'White',
+  Vaporeon:'Blue', Veluza:'Blue', Venomoth:'Purple', Venusaur:'Green', Vespiquen:'Yellow',
+  Victreebel:'Green', Vikavolt:'Yellow', Vileplume:'Red', Vivillon:'White', Volbeat:'Black',
+  Volcarona:'White', Wailord:'Blue', Walrein:'Blue', Weavile:'Black', Weezing:'Purple',
+  'Weezing-Galar':'Pink', Whimsicott:'White', Whiscash:'Brown', Wigglytuff:'Pink', Wishiwashi:'Blue',
+  Wobbuffet:'Blue', Wormadam:'Green', 'Wormadam-Trash':'Gray', Wugtrio:'Blue', Wyrdeer:'Brown',
+  Xatu:'Green', Yanmega:'Green', Zangoose:'White', Zebstrika:'Black', Zoroark:'Red',
+  'Zoroark-Hisui':'White'
+};
+// Safe lookup for an avatar's official-color hex — falls back to Gray (a neutral,
+// always-legible default) if a name is ever missing, rather than throwing.
+function colorForAvatar(avatar){
+  const category = POKEMON_COLOR[avatar.name];
+  return POKEDEX_COLOR_HEX[category] || POKEDEX_COLOR_HEX.Gray;
+}
+
+// --- Deterministic pool-picking helpers (reused) ---
+// they land in the same zodiac sign.
+function pickFromPool(pool, seed){
+  const idx = ((seed % pool.length) + pool.length) % pool.length;
+  return pool[idx];
+}
+// Safe modulo (always returns a non-negative result, unlike JS's raw %) — used to
+// bound multiplicative seed factors to a small range so their product can't exceed
+// JavaScript's safe integer precision (2^53).
+function safeMod(x, n){
+  return ((x % n) + n) % n;
+}
+// Same as pickFromPool, but guarantees the result hasn't already been claimed by an
+// earlier axis this chart — walks forward through the pool from the seeded index until
+// it finds an unclaimed entry, then reserves it in usedKeys. With six axes now drawing
+// from pools as small as 8 (dual-typed cross-pools), plain seeding could otherwise
+// hand two different placements the same species. Falls back to the seeded pick
+// unclaimed if every entry in this particular pool is already taken (only possible
+// with a very small pool and heavy prior claims).
+function pickUniqueFromPool(pool, seed, usedKeys){
+  const n = pool.length;
+  const idx0 = ((seed % n) + n) % n;
+  for (let offset = 0; offset < n; offset++){
+    const mon = pool[(idx0 + offset) % n];
+    const key = mon.dex + ':' + mon.name;
+    if (!usedKeys.has(key)){
+      usedKeys.add(key);
+      return mon;
+    }
+  }
+  return pool[idx0];
+}
+
+// --- Sprite/artwork two-tier fallback chain (reused) ---
+function spriteUrl(avatar){
+  // GitHub's raw sprite repo is built for exactly this kind of embedding and
+  // doesn't hotlink-block, unlike pokemondb — use it by default. It's indexed by
+  // national dex number, which can't distinguish regional forms (they share their
+  // base species' number), so those specific entries fall back to pokemondb's
+  // name-slug URLs instead — a much smaller set, so a much smaller risk surface.
+  if (avatar.slug) return `https://img.pokemondb.net/artwork/large/${avatar.slug}.jpg`;
+  return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${avatar.dex}.png`;
+}
+function spriteUrlHome(avatar){
+  if (avatar.slug) return `https://img.pokemondb.net/sprites/home/normal/${avatar.slug}.png`;
+  return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${avatar.dex}.png`;
+}
+// Fallback source for regional-form artwork specifically, tried only if pokemondb's
+// slug-based image fails to load — suspected (not confirmed; untestable from this
+// sandbox, no route to either host) to be a CORS gap: pokemondb works fine as a plain
+// <img> on the live page, but the downloadable card's canvas requires CORS permission
+// to avoid a "tainted canvas" error, and pokemondb may not grant it. Pokémon Showdown's
+// sprite CDN uses simple name-based slugs instead of pokemondb's — deliberately used
+// here over PokeAPI's numeric form-ID system (e.g. raichu-alola is internally 10093,
+// not dex 26) because a wrong *name* slug just 404s and falls through safely, where a
+// wrong *number* could silently point at a different real Pokémon's artwork — the same
+// class of bug this whole fallback exists to avoid. Pattern-derived from the existing
+// pokemondb slug, verified against one confirmed real example (raichu-alolan ->
+// raichu-alola); returns null for the handful of irregular slugs (Paldean Tauros
+// breeds, Wormadam-Trash, Oricorio, Darmanitan-Galar's "-standard" suffix) rather than
+// guessing at those, leaving them exactly as they behave today.
+function showdownSlugFrom(pokemondbSlug){
+  if (!pokemondbSlug) return null;
+  if (pokemondbSlug.endsWith('-alolan')) return pokemondbSlug.slice(0, -1);
+  if (pokemondbSlug.endsWith('-galarian')) return pokemondbSlug.replace(/-galarian$/, '-galar');
+  if (pokemondbSlug.endsWith('-hisuian')) return pokemondbSlug.replace(/-hisuian$/, '-hisui');
+  return null;
+}
+function alternateArtUrl(avatar){
+  const showdownSlug = showdownSlugFrom(avatar.slug);
+  return showdownSlug ? `https://play.pokemonshowdown.com/sprites/gen5/${showdownSlug}.png` : null;
+}
+// Builds the onerror attribute for an avatar <img> — tries alternateArtUrl (if this
+// avatar has one) before running finalJs, the same fallback each avatar already had.
+// Shared by both img tags below so the two-tier logic lives in one place.
+function imgFallbackOnError(avatar, finalJs){
+  const altUrl = alternateArtUrl(avatar);
+  if (!altUrl) return finalJs;
+  return `this.onerror=function(){${finalJs}};this.src='${altUrl}';`;
+}
+
+// --- Per-avatar and per-type reading text (reused/adapted), plus optional live PokeAPI enrichment ---
+const AVATAR_BLURB_TEMPLATES = [
+  (a) => `${a.name} is the specific Pokémon standing in for this placement — a ${a.types.join('/')}-type known for being ${a.trait}.`,
+  (a) => `This placement lands on ${a.name}: ${a.types.join('/')}-type, ${a.trait}.`,
+  (a) => `Out of everyone who could have shown up here, it's ${a.name} — ${a.types.join('/')}-type, and ${a.trait}.`,
+  (a) => `${a.name} carries this one for you. ${a.types.join('/')}-type, ${a.trait}.`,
+  (a) => `Here, that's ${a.name}: a ${a.types.join('/')}-type Pokémon that's ${a.trait}.`,
+];
+// One hand-written paragraph per type — broad enough to genuinely fit every member of
+// that type's pool (Fire has to read true for both explosive Typhlosion and banked-heat
+// Torkoal, for instance), not a description of any single Pokémon. Appended after the
+// per-avatar trait sentence above so each card gets real type-level personality writing
+// on top of the specific trait, rather than the trait alone padded into a longer template.
+const TYPE_PERSONALITY = {
+  Fire: "Fire-types run on an inner heat that never fully banks — for some it flares the second something's in the way, for others it just keeps the pilot light burning until it's needed. Either way, there's no faking the warmth; it's real, and it's rarely subtle. People tend to read that heat before they read anything else about a Fire-type, which is usually an accurate first impression, even if it isn't the whole one.",
+  Water: "Water-types hold more than they show on the surface — calm on top, working something out underneath, or the other way around entirely. What looks still is usually just patient; what looks like retreat is usually regrouping. Pressure doesn't break a Water-type so much as reroute them, and the shape they take afterward is rarely the one anyone expected going in.",
+  Grass: "Grass-types grow on their own schedule and don't thank anyone for rushing them — the payoff is real, it just isn't fast. Underestimate the quiet ones at your own risk; roots go deeper than anyone above ground can see. Given enough time and not much else, a Grass-type will outlast almost anything that tried to outpace them.",
+  Electric: "Electric-types are wired for motion — thoughts, moods, plans, all of it arrives fast and rarely waits its turn. The charge has to go somewhere; better it finds a project than a person. Left with nothing to run through, that current doesn't just disappear — it finds the nearest outlet, which is usually whatever's closest, not whatever's best.",
+  Psychic: "Psychic-types think in layers most people don't bother opening — three explanations deep before anyone else has settled on one. It looks like distraction from outside; from inside it's just how the room actually reads. The hard part isn't having the thought, it's deciding which of the six versions is actually worth saying out loud.",
+  Ice: "Ice-types keep a composed surface over something that runs colder or deeper than they let on — not cold as in unfeeling, cold as in undisturbed. When that surface finally cracks, it's rarely a small thing. Most people never see it happen, because an Ice-type would rather absorb the pressure alone than let anyone watch the surface go.",
+  Fighting: "Fighting-types measure themselves against something — a rival, a standard, a version of themselves from last year — and rarely stop moving toward it. Rest reads like falling behind, even when nobody's actually keeping score but them. The discipline is real and mostly self-imposed, which makes it both their greatest asset and the hardest thing to ever talk them out of.",
+  Poison: "Poison-types are more careful than their reputation suggests — the sting is a last resort, not an opening move, and it's usually earned. What reads as menace from a distance is often just a very firm boundary. Cross it once by accident and you'll likely be forgiven; cross it twice on purpose and you'll understand exactly why the reputation exists.",
+  Ground: "Ground-types don't need to be first, just steady — built for the long stretch rather than the sprint, and unbothered by how long the long stretch takes. Move one and you'll find out how much was actually holding still on purpose. That steadiness isn't a lack of ambition, it's a different theory of how ambition actually pays off.",
+  Flying: "Flying-types keep one foot toward the exit at all times — not from fear, usually, just a low tolerance for feeling boxed in. Give them room and they're generous; corner them and they're gone. The freedom isn't restlessness for its own sake, it's a genuine requirement — the people who understand that tend to get far more loyalty back than the ones who try to fence it in.",
+  Rock: "Rock-types absorb far more than they let show, and take their time deciding what, if anything, gets a reaction. What looks unmoved has usually just already decided this particular thing isn't worth moving for. When something finally does register, it registers permanently — a Rock-type's opinion of you, once formed, is not easily revised.",
+  Bug: "Bug-types are built for turnover — quick to adapt, quick to outgrow whatever stage came before, rarely sentimental about it. The version of them from a year ago and the version now are doing two different jobs entirely. What looks like restlessness is really just a refusal to stay in a shape that's already stopped fitting.",
+  Ghost: "Ghost-types keep something back — a real feeling, an old grudge, a version of themselves that only shows up once trust is actually earned. What looks playful on the surface is usually testing whether it's safe to be serious. Get past the testing phase and what's underneath tends to be more sincere, and more attached, than the Ghost-type would ever openly admit.",
+  Dragon: "Dragon-types were never built to stay small, and eventually that stops being negotiable — big presence, big plans, low patience for anything that asks them to shrink. The confidence isn't performance; it's just accurate. The only real risk is a Dragon-type mistaking scale for a plan, when it's usually just the ambition talking.",
+  Dark: "Dark-types trust selectively and completely — a short list, guarded fiercely, and everyone else kept at a careful distance until proven otherwise. It reads as coldness from outside the circle; from inside it, it's the opposite. Getting onto that short list takes a while, and getting removed from it takes almost nothing — which is exactly how a Dark-type prefers it.",
+  Steel: "Steel-types are built, not born — whatever softness came first got reshaped into something that holds up under pressure. The guard isn't paranoia, it's maintenance, and it's usually justified by something that happened once. What looks unbreakable from outside took real work to become that way, and a Steel-type rarely gets credit for the version of themselves that existed before the reinforcement.",
+  Fairy: "Fairy-types run on feeling and are more perceptive about a room than they let on — soft exterior, sharper read than anyone expects. Charm is real, but it's not the whole story, just the part offered first. Underneath the warmth is usually a very clear sense of exactly who's earned it and who's still auditioning.",
+  Normal: "Normal-types resist being reduced to one trait, one mood, one easy label — flexible almost to a fault, adapting to whatever the moment actually needs. Underestimating them is the single most common mistake anyone makes. The lack of one defining edge isn't a gap, it's the actual point — a Normal-type's range is the trait, even when nobody else notices it as one.",
+};
+
+// Adapted from the astrology app's avatarBlurb(avatar, sign): here each placement carries
+// a single assigned type directly (Primary/Secondary/Tertiary/Quaternary) rather than a
+// zodiac sign object, so we prefer that type's paragraph when the avatar is dual-typed --
+// e.g. a Water/Ice Pokémon picked for the Ice placement gets the Ice paragraph, not Water.
+function avatarBlurb(avatar, assignedType){
+  const template = AVATAR_BLURB_TEMPLATES[avatar.dex % AVATAR_BLURB_TEMPLATES.length];
+  const opening = template(avatar);
+  const relevantType = avatar.types.includes(assignedType) ? assignedType : avatar.types[0];
+  const typeFlavor = TYPE_PERSONALITY[relevantType] || '';
+  return typeFlavor ? `${opening} ${typeFlavor}` : opening;
+}
+
+// --- Optional live enhancement: official Pokédex flavor text from PokeAPI (pokeapi.co) ---
+// This is a progressive enhancement only -- the writing above is already a complete result
+// on its own. A name only qualifies for the lookup if it's a single plain alphabetic word:
+// regional forms (identified by a `slug` field) and the handful of punctuated names (Mr.
+// Mime, Mr. Rime, Farfetch'd, Sirfetch'd) are skipped outright rather than guessed at, since
+// their exact PokeAPI species slug isn't something that could be verified ahead of time --
+// consistent with this app's existing "fail safely rather than guess" sprite-fallback design.
+function isSimplePokeApiName(name){
+  return /^[A-Za-z]+$/.test(name);
+}
+const POKEAPI_TIMEOUT_MS = 5000;
+async function fetchOfficialFlavorText(mon){
+  if (mon.slug) return null;
+  if (!isSimplePokeApiName(mon.name)) return null;
+  const slug = mon.name.toLowerCase();
+  let timeoutId;
+  try {
+    const controller = new AbortController();
+    timeoutId = setTimeout(() => controller.abort(), POKEAPI_TIMEOUT_MS);
+    const res = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${slug}`, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const entries = (data.flavor_text_entries || []).filter(e => e.language && e.language.name === 'en');
+    if (!entries.length) return null;
+    const raw = entries[0].flavor_text || '';
+    const cleaned = raw.replace(/\f/g, ' ').replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+    return cleaned || null;
+  } catch (err){
+    if (timeoutId) clearTimeout(timeoutId);
+    return null;
+  }
+}
+
+// --- Quiz questions (31 total, 7-9 answer options each; weights balanced ~50-52 per type) ---
+const QUESTIONS = [
+  {
+    prompt: "When a big problem lands on your plate, your first move is to...",
+    answers: [
+      { text: "Charge straight at it and adjust as you go", weights: {Fire:3, Fighting:1} },
+      { text: "Map out every step before you touch it", weights: {Steel:3, Rock:1} },
+      { text: "Feel out what the situation needs and bend to fit", weights: {Water:3, Normal:1} },
+      { text: "Find the angle nobody else has thought of", weights: {Psychic:3, Dark:1} },
+      { text: "Ask around until someone smarter takes it on", weights: {Fairy:3, Bug:1} },
+      { text: "Handle it your own way, quietly, without asking permission", weights: {Dark:3, Ground:1} },
+      { text: "Step back and get some distance before deciding anything", weights: {Flying:3, Ice:1} },
+      { text: "Assess it calmly, without letting it rattle you", weights: {Ice:3, Normal:1} },
+    ]
+  },
+  {
+    prompt: "Your friends would probably describe you as...",
+    answers: [
+      { text: "The one who lights up the room", weights: {Fire:3, Fairy:1} },
+      { text: "Steady, dependable, unshakeable", weights: {Ground:3, Rock:1} },
+      { text: "A little hard to read, in a good way", weights: {Ghost:3, Dark:1} },
+      { text: "Quietly intense", weights: {Dragon:3, Fighting:1} },
+      { text: "The glue that holds the group together", weights: {Normal:3, Fairy:1} },
+      { text: "Someone who keeps their own counsel", weights: {Dark:3, Ground:1} },
+      { text: "Sharper than people expect", weights: {Poison:3, Dark:1} },
+      { text: "Unbothered by pretty much everything", weights: {Rock:3, Water:1} },
+    ]
+  },
+  {
+    prompt: "Pick a weekend activity:",
+    answers: [
+      { text: "Chasing a view from somewhere high up", weights: {Flying:3, Dragon:1} },
+      { text: "Tending a garden or a slow home project", weights: {Grass:3, Ground:1} },
+      { text: "A long, aimless walk to think", weights: {Psychic:3, Normal:1} },
+      { text: "Wherever the group ends up going", weights: {Water:3, Fairy:1} },
+      { text: "Deep-cleaning and organizing something", weights: {Steel:3, Bug:1} },
+      { text: "Nowhere \u2014 a proper do-nothing weekend", weights: {Ghost:3, Ice:1} },
+      { text: "Something physical and a little grueling", weights: {Ground:3, Fighting:1} },
+      { text: "Slow mornings, nowhere to be", weights: {Grass:3, Ice:1} },
+      { text: "Testing my limits, alone", weights: {Fighting:3, Ghost:1} },
+    ]
+  },
+  {
+    prompt: "When someone challenges your opinion, you tend to...",
+    answers: [
+      { text: "Hold your ground and argue it out", weights: {Fighting:3, Rock:1} },
+      { text: "Quietly note it and reconsider later", weights: {Ghost:3, Psychic:1} },
+      { text: "Look for the compromise that keeps the peace", weights: {Fairy:3, Water:1} },
+      { text: "Bring receipts and win the point", weights: {Steel:3, Electric:1} },
+      { text: "Assume they might be right and dig in", weights: {Bug:3, Psychic:1} },
+      { text: "Push back hard, on principle", weights: {Dark:3, Fighting:1} },
+      { text: "Get fired up and argue it out fast", weights: {Electric:3, Fire:1} },
+      { text: "Smile, disengage, and quietly keep your opinion", weights: {Dark:3, Fairy:1} },
+    ]
+  },
+  {
+    prompt: "What's your relationship with rules?",
+    answers: [
+      { text: "Useful, until they get in the way", weights: {Dark:3, Poison:1} },
+      { text: "They exist for a reason \u2014 follow them", weights: {Normal:3, Steel:1} },
+      { text: "I'll bend them if it helps someone", weights: {Water:3, Fairy:1} },
+      { text: "I'd rather build my own system", weights: {Dragon:3, Psychic:1} },
+      { text: "I barely notice they're there", weights: {Flying:3, Electric:1} },
+      { text: "I follow the ones that make sense, break the rest", weights: {Dark:3, Fighting:1} },
+      { text: "I go along with them, mostly", weights: {Normal:3, Water:1} },
+      { text: "I follow my own pace, rules or not", weights: {Grass:3, Normal:1} },
+    ]
+  },
+  {
+    prompt: "A friend is upset. You...",
+    answers: [
+      { text: "Sit with them, no need to fix it", weights: {Water:3, Fairy:1} },
+      { text: "Ask what happened and go handle it", weights: {Fighting:3, Fire:1} },
+      { text: "Give them space, check in later", weights: {Ghost:3, Normal:1} },
+      { text: "Distract them until they're laughing", weights: {Electric:3, Fairy:1} },
+      { text: "Quietly take care of something practical for them", weights: {Ground:3, Bug:1} },
+      { text: "Say the hard thing they actually need to hear", weights: {Poison:3, Dragon:1} },
+      { text: "Get protective, fast", weights: {Dark:3, Fighting:1} },
+      { text: "Help them plan their next move", weights: {Poison:3, Steel:1} },
+    ]
+  },
+  {
+    prompt: "Your ideal pace of life is...",
+    answers: [
+      { text: "Fast \u2014 I like momentum", weights: {Electric:3, Flying:1} },
+      { text: "Slow and deliberate", weights: {Grass:3, Rock:1} },
+      { text: "Whatever the day throws at me", weights: {Water:3, Normal:1} },
+      { text: "Bursts of intensity, then rest", weights: {Fire:3, Ice:1} },
+      { text: "Steady and unchanging, and I like it that way", weights: {Steel:3, Ground:1} },
+      { text: "Pushed to the edge, then recover hard", weights: {Fighting:3, Fire:1} },
+      { text: "Intense but sustainable \u2014 no burnout", weights: {Fire:3, Ground:1} },
+      { text: "However it naturally flows, day to day", weights: {Water:3} },
+    ]
+  },
+  {
+    prompt: "Pick a workspace:",
+    answers: [
+      { text: "Cluttered, but I know where everything is", weights: {Bug:3, Ground:1} },
+      { text: "Minimal \u2014 nothing I don't need", weights: {Steel:3, Ice:1} },
+      { text: "Somewhere with a view, ideally outdoors", weights: {Flying:3, Grass:1} },
+      { text: "Wherever feels a bit hidden away", weights: {Ghost:3, Dark:1} },
+      { text: "Wherever people are \u2014 I like the noise", weights: {Normal:3, Electric:1} },
+      { text: "Somewhere I can leave the second I'm done", weights: {Flying:3, Ground:1} },
+      { text: "Silent, and entirely mine", weights: {Ice:3, Psychic:1} },
+    ]
+  },
+  {
+    prompt: "What's your instinct in a group project?",
+    answers: [
+      { text: "Take the lead and set direction", weights: {Dragon:3, Fighting:1} },
+      { text: "Do the unglamorous work nobody wants", weights: {Bug:3, Ground:1} },
+      { text: "Keep everyone talking to each other", weights: {Fairy:3, Normal:1} },
+      { text: "Work solo, report back with results", weights: {Dark:3, Psychic:1} },
+      { text: "Push back on the plan until it's actually good", weights: {Rock:3, Fighting:1} },
+      { text: "Quietly steer it toward what actually works", weights: {Psychic:3, Dragon:1} },
+      { text: "Adapt to whoever's already leading", weights: {Water:3, Dragon:1} },
+    ]
+  },
+  {
+    prompt: "You're most drawn to stories about...",
+    answers: [
+      { text: "Underdogs proving themselves", weights: {Fighting:3, Fire:1} },
+      { text: "Hidden worlds and secrets", weights: {Psychic:3, Ghost:1} },
+      { text: "Survival against the odds", weights: {Rock:3, Ground:1} },
+      { text: "Transformation and rebirth", weights: {Grass:3, Dragon:1} },
+      { text: "Tricksters who outsmart everyone", weights: {Poison:3, Dark:1} },
+      { text: "Found family and loyalty", weights: {Fairy:3, Water:1} },
+      { text: "People rebuilding after everything fell apart", weights: {Fire:3, Ground:1} },
+      { text: "Breaking free of where you started", weights: {Fighting:3, Flying:1} },
+    ]
+  },
+  {
+    prompt: "How do you handle being told 'no'?",
+    answers: [
+      { text: "Push back and make the case again", weights: {Fighting:3, Dragon:1} },
+      { text: "Accept it and find another route", weights: {Water:3, Electric:1} },
+      { text: "Take it personally for a while", weights: {Ice:3, Ghost:1} },
+      { text: "Shrug it off, wasn't that attached anyway", weights: {Normal:3, Flying:1} },
+      { text: "Wait it out \u2014 the answer might change later", weights: {Rock:3, Poison:1} },
+      { text: "File it away and get it anyway, eventually", weights: {Dark:3, Dragon:1} },
+      { text: "Let it go without much of a fight", weights: {Ghost:3, Ground:1} },
+    ]
+  },
+  {
+    prompt: "Your idea of a good gift is...",
+    answers: [
+      { text: "Something thoughtful and handmade", weights: {Fairy:3, Grass:1} },
+      { text: "Something rare or hard to get", weights: {Dragon:3, Rock:1} },
+      { text: "Something practical they'll actually use", weights: {Ground:3, Steel:1} },
+      { text: "A shared experience, not a thing", weights: {Flying:3, Water:1} },
+      { text: "Whatever solves a problem they haven't solved yet", weights: {Bug:3, Electric:1} },
+      { text: "Something that's useful now but they'll appreciate even more later", weights: {Ground:3, Poison:1} },
+      { text: "Something a little unexpected, chosen on purpose", weights: {Poison:3, Psychic:1} },
+    ]
+  },
+  {
+    prompt: "When plans fall apart last minute, you...",
+    answers: [
+      { text: "Improvise something better on the spot", weights: {Electric:3, Fire:1} },
+      { text: "Feel thrown off, need a minute", weights: {Ice:3, Water:1} },
+      { text: "Already had a backup plan", weights: {Steel:3, Bug:1} },
+      { text: "Honestly, kind of relieved", weights: {Ghost:3, Dark:1} },
+      { text: "Get irritated, then reset fast", weights: {Fighting:3, Fire:1} },
+      { text: "Get louder about fixing it than anyone else", weights: {Dragon:3, Fighting:1} },
+      { text: "Push through and force a new plan into existence", weights: {Dragon:3, Electric:1} },
+    ]
+  },
+  {
+    prompt: "Pick a compliment you'd actually want to hear:",
+    answers: [
+      { text: "You're impossible to fool", weights: {Dark:3, Poison:1} },
+      { text: "You make people feel safe", weights: {Fairy:3, Normal:1} },
+      { text: "You never quit", weights: {Fighting:3, Ground:1} },
+      { text: "You see things other people miss", weights: {Psychic:3, Bug:1} },
+      { text: "You're the calmest person in the room", weights: {Ice:3, Water:1} },
+      { text: "You know when to let something go", weights: {Flying:3, Grass:1} },
+      { text: "You make it look effortless", weights: {Flying:3, Grass:1} },
+    ]
+  },
+  {
+    prompt: "How do you deal with a rival or competitor?",
+    answers: [
+      { text: "Outwork them, plain and simple", weights: {Fighting:3, Fire:1} },
+      { text: "Study them until you know their next move", weights: {Poison:3, Dark:1} },
+      { text: "Stay in your own lane entirely", weights: {Grass:3, Normal:1} },
+      { text: "Turn it into a friendly game", weights: {Electric:3, Fairy:1} },
+      { text: "Let the results speak for themselves", weights: {Rock:3, Steel:1} },
+      { text: "Get inside their head a little", weights: {Poison:3, Psychic:1} },
+      { text: "Treat it like any other day at work", weights: {Ground:3, Normal:1} },
+    ]
+  },
+  {
+    prompt: "What's your comfort zone?",
+    answers: [
+      { text: "The ocean, or any water", weights: {Water:3, Ice:1} },
+      { text: "Somewhere underground or enclosed", weights: {Ground:3, Rock:1} },
+      { text: "Anywhere with open sky", weights: {Flying:3, Electric:1} },
+      { text: "A quiet forest", weights: {Grass:3, Bug:1} },
+      { text: "A city that never fully sleeps", weights: {Steel:3, Normal:1} },
+      { text: "Somewhere a little strange and off the map", weights: {Ghost:3, Poison:1} },
+      { text: "Somewhere I can push myself physically", weights: {Fighting:3, Fire:1} },
+      { text: "My own head, mostly", weights: {Psychic:3, Rock:1} },
+    ]
+  },
+  {
+    prompt: "How do you show someone you care?",
+    answers: [
+      { text: "Show up and do something useful", weights: {Ground:3, Fighting:1} },
+      { text: "Say it plainly, no games", weights: {Normal:3, Dragon:1} },
+      { text: "Small, consistent gestures over time", weights: {Bug:3, Fairy:1} },
+      { text: "Protect their space, ask for little", weights: {Steel:3, Ghost:1} },
+      { text: "Remember the small things they mentioned once", weights: {Water:3, Psychic:1} },
+      { text: "Give them room to grow at their own pace", weights: {Grass:3, Psychic:1} },
+      { text: "Tell them the truth, even when it's not easy", weights: {Dark:3, Electric:1} },
+    ]
+  },
+  {
+    prompt: "Your energy on a typical day is more...",
+    answers: [
+      { text: "Bright and outward", weights: {Fire:3, Electric:1} },
+      { text: "Calm and inward", weights: {Psychic:3, Ice:1} },
+      { text: "Grounded and even", weights: {Normal:3, Ground:1} },
+      { text: "Unpredictable, depends who's around", weights: {Poison:3, Dark:1} },
+      { text: "Slow to start, hard to stop once going", weights: {Rock:3, Grass:1} },
+      { text: "Restless, always looking for the next thing", weights: {Flying:3, Dragon:1} },
+      { text: "Sharp, then sudden bursts", weights: {Dark:3, Electric:1} },
+      { text: "Warm, but with a spark underneath", weights: {Fairy:3, Fire:1} },
+    ]
+  },
+  {
+    prompt: "Something breaks that you value. You...",
+    answers: [
+      { text: "Fix it yourself, however long it takes", weights: {Steel:3, Rock:1} },
+      { text: "Feel it more than you'd admit", weights: {Ice:3, Fairy:1} },
+      { text: "Let it go \u2014 things break", weights: {Flying:3, Normal:1} },
+      { text: "Get quietly angry, then move on", weights: {Dragon:3, Fighting:1} },
+      { text: "Research the best way to replace it properly", weights: {Bug:3, Electric:1} },
+      { text: "Get frustrated, then rebuild it sturdier than before", weights: {Fire:3, Ground:1} },
+      { text: "Take your time repairing it right", weights: {Grass:3, Ice:1} },
+    ]
+  },
+  {
+    prompt: "Pick a way to spend a rainy afternoon:",
+    answers: [
+      { text: "Deep in a book or a puzzle", weights: {Psychic:3, Bug:1} },
+      { text: "Cooking something slow and involved", weights: {Grass:3, Fairy:1} },
+      { text: "Rewatching something familiar and comforting", weights: {Normal:3, Water:1} },
+      { text: "Doing absolutely nothing, guilt-free", weights: {Ghost:3, Poison:1} },
+      { text: "Tinkering with something that's been bugging me", weights: {Steel:3, Rock:1} },
+      { text: "Calling someone I haven't talked to in a while", weights: {Fairy:3, Electric:1} },
+      { text: "Sitting with your own thoughts, undisturbed", weights: {Ice:3, Psychic:1} },
+      { text: "Doing chores you've been putting off", weights: {Normal:3, Rock:1} },
+    ]
+  },
+  {
+    prompt: "How do you handle a slow, simmering conflict \u2014 not a blowup?",
+    answers: [
+      { text: "Let it sit quietly until it can't be avoided", weights: {Poison:3, Ghost:1} },
+      { text: "Bring it up calmly, once, and mean it", weights: {Ice:3, Steel:1} },
+      { text: "Turn the tension into something productive", weights: {Bug:3, Grass:1} },
+      { text: "Confront it head-on, right away", weights: {Fire:3, Dragon:1} },
+      { text: "Wait for the other person to bring it up first", weights: {Water:3, Normal:1} },
+      { text: "Escalate it on purpose, just to get it over with", weights: {Dragon:3, Electric:1} },
+      { text: "Address it the moment it's clear, not before", weights: {Water:3, Electric:1} },
+    ]
+  },
+  {
+    prompt: "Pick a hidden talent:",
+    answers: [
+      { text: "I can talk my way out of almost anything", weights: {Poison:3, Dark:1} },
+      { text: "I never forget a detail", weights: {Bug:3, Steel:1} },
+      { text: "I stay perfectly calm under pressure", weights: {Ice:3, Psychic:1} },
+      { text: "I can fix almost anything with my hands", weights: {Steel:3, Rock:1} },
+      { text: "I can read a room instantly", weights: {Fairy:3, Psychic:1} },
+      { text: "I know exactly when to walk away", weights: {Flying:3, Ground:1} },
+      { text: "I outlast almost anyone", weights: {Fighting:3, Fire:1} },
+    ]
+  },
+  {
+    prompt: "What's your relationship with tradition?",
+    answers: [
+      { text: "Respect it, rarely break from it", weights: {Rock:3, Steel:1} },
+      { text: "Take what's useful, leave the rest", weights: {Grass:3, Bug:1} },
+      { text: "Actively push against it", weights: {Electric:3, Dark:1} },
+      { text: "Honestly don't think about it much", weights: {Flying:3, Ice:1} },
+      { text: "I'll follow it if someone explains why it matters", weights: {Normal:3, Ground:1} },
+      { text: "I use it when it's useful, ignore it otherwise", weights: {Poison:3, Psychic:1} },
+      { text: "I quietly do my own thing regardless", weights: {Ghost:3, Ice:1} },
+    ]
+  },
+  {
+    prompt: "Pick a hidden strength people underestimate in you:",
+    answers: [
+      { text: "Patience that outlasts everyone else's", weights: {Rock:3, Grass:1} },
+      { text: "I notice things before anyone else does", weights: {Bug:3, Psychic:1} },
+      { text: "I recover fast from setbacks", weights: {Fire:3, Electric:1} },
+      { text: "I know exactly which buttons not to push", weights: {Poison:3, Dark:1} },
+      { text: "People trust me faster than they mean to", weights: {Fairy:3, Water:1} },
+      { text: "I move faster than people expect", weights: {Electric:3, Fighting:1} },
+      { text: "I outlast people who wrote me off", weights: {Poison:3, Rock:1} },
+    ]
+  },
+  {
+    prompt: "Pick a texture or feeling you're drawn to:",
+    answers: [
+      { text: "Sharp and metallic", weights: {Steel:3, Rock:1} },
+      { text: "Electric and crackling", weights: {Electric:3, Fire:1} },
+      { text: "Cool, still, quiet", weights: {Ice:3, Ghost:1} },
+      { text: "Buzzing and alive", weights: {Bug:3, Grass:1} },
+      { text: "Warm and soft", weights: {Fairy:3, Normal:1} },
+      { text: "Earthy and solid", weights: {Grass:3, Ground:1} },
+      { text: "Intense and a little dangerous", weights: {Dragon:3, Electric:1} },
+    ]
+  },
+  {
+    prompt: "How do you recharge after a long week?",
+    answers: [
+      { text: "Total isolation, no explanations needed", weights: {Ghost:3, Ice:1} },
+      { text: "Something physically intense", weights: {Fire:3, Dragon:1} },
+      { text: "Puttering around outside", weights: {Grass:3, Flying:1} },
+      { text: "Losing myself in something meticulous", weights: {Bug:3, Steel:1} },
+      { text: "Time with people who don't drain me", weights: {Fairy:3, Water:1} },
+      { text: "A completely ordinary, quiet routine", weights: {Normal:3, Psychic:1} },
+      { text: "Getting out of town, even briefly", weights: {Fire:3, Flying:1} },
+    ]
+  },
+  {
+    prompt: "What's your default response to being underestimated?",
+    answers: [
+      { text: "Quietly prove them wrong, later", weights: {Poison:3, Dark:1} },
+      { text: "Correct them immediately", weights: {Electric:3, Dragon:1} },
+      { text: "Genuinely don't care what they think", weights: {Rock:3, Ice:1} },
+      { text: "Use it to your advantage", weights: {Ghost:3, Poison:1} },
+      { text: "Let the work speak for itself", weights: {Ground:3, Steel:1} },
+      { text: "Let them keep thinking that \u2014 it's useful", weights: {Water:3, Dark:1} },
+      { text: "Stay exactly the same, unbothered", weights: {Ground:3, Ice:1} },
+    ]
+  },
+  {
+    prompt: "Pick an approach to risk:",
+    answers: [
+      { text: "Calculated, always with a backup plan", weights: {Steel:3, Bug:1} },
+      { text: "Trust your gut and go", weights: {Fire:3, Electric:1} },
+      { text: "Avoid it whenever you can", weights: {Rock:3, Ice:1} },
+      { text: "It's where things get interesting", weights: {Dragon:3, Flying:1} },
+      { text: "Depends entirely who else is affected", weights: {Water:3, Fairy:1} },
+      { text: "Take it on directly, no hesitation", weights: {Fighting:3, Fire:1} },
+      { text: "Weigh it quietly, then commit fully", weights: {Psychic:3, Rock:1} },
+    ]
+  },
+  {
+    prompt: "How do you feel about long stretches alone?",
+    answers: [
+      { text: "Genuinely prefer it", weights: {Ghost:3, Dark:1} },
+      { text: "Fine, as long as I have a project", weights: {Bug:3, Grass:1} },
+      { text: "It wears on me eventually", weights: {Ice:3, Psychic:1} },
+      { text: "Depends entirely on the reason", weights: {Poison:3, Dragon:1} },
+      { text: "I actively seek it out on purpose", weights: {Rock:3, Ghost:1} },
+      { text: "I don't really notice how long it's been", weights: {Ground:3, Ice:1} },
+      { text: "I use it to work on something nobody knows about", weights: {Bug:3, Dark:1} },
+    ]
+  },
+  {
+    prompt: "Pick a way you'd rather be wrong:",
+    answers: [
+      { text: "Wrong because I trusted someone too much", weights: {Grass:3, Fairy:1} },
+      { text: "Wrong because I moved too fast", weights: {Electric:3, Fire:1} },
+      { text: "Wrong because I overthought it", weights: {Psychic:3, Ghost:1} },
+      { text: "Wrong because I underestimated the threat", weights: {Rock:3, Steel:1} },
+      { text: "Wrong because I refused to back down", weights: {Dragon:3, Fighting:1} },
+      { text: "Wrong because I kept something to myself too long", weights: {Psychic:3, Dark:1} },
+      { text: "Wrong because I trusted the wrong spark of an idea", weights: {Electric:3, Fairy:1} },
+    ]
+  },
+  {
+    prompt: "What kind of quiet do you like best?",
+    answers: [
+      { text: "Early morning, before anyone's awake", weights: {Flying:3, Psychic:1} },
+      { text: "Deep in a task, hands busy", weights: {Bug:3, Steel:1} },
+      { text: "A held silence between two people who get it", weights: {Ghost:3, Dragon:1} },
+      { text: "Absolute, no distractions at all", weights: {Ice:3, Rock:1} },
+      { text: "There isn't one \u2014 I like some background noise", weights: {Normal:3, Electric:1} },
+      { text: "The quiet right before something big happens", weights: {Dragon:3, Fire:1} },
+      { text: "Open air, nothing overhead", weights: {Flying:3, Grass:1} },
+    ]
+  },
+];
+// --- Scoring algorithm: ceiling normalization, consistency weighting, multi-axis tie-break ---
+// --- Type axis positions: [Intensity, Sociability, Structure, Directness, Orientation] ---
+// each axis roughly -2..2: calm<->fierce, solitary<->communal, freeform<->disciplined, subtle<->direct, traditional<->novel
+const TYPE_AXES = {
+  Fire:     [ 2,  1, -1,  2,  1],
+  Water:    [-1,  1,  0, -1,  0],
+  Grass:    [-2,  0,  1, -1, -1],
+  Electric: [ 2,  0, -2,  1,  2],
+  Ice:      [-1, -2,  1, -1,  0],
+  Fighting: [ 2,  0,  1,  2, -1],
+  Poison:   [ 0, -1, -1, -2,  0],
+  Ground:   [ 0,  0,  2,  1, -2],
+  Flying:   [ 0, -1, -2,  0,  1],
+  Psychic:  [-1, -2,  1, -1,  1],
+  Bug:      [-1,  0,  2, -1, -1],
+  Rock:     [ 0, -1,  2,  0, -2],
+  Ghost:    [-1, -2, -1, -2,  1],
+  Dragon:   [ 2,  1, -1,  1,  1],
+  Dark:     [ 0, -2, -1, -2,  0],
+  Steel:    [ 0, -1,  2,  1, -1],
+  Fairy:    [-1,  2, -1, -1,  0],
+  Normal:   [-1,  1,  0,  0, -1],
+};
+const AXIS_LABELS = [
+  ['calm','fierce'],
+  ['solitary','communal'],
+  ['freeform','disciplined'],
+  ['subtle','direct'],
+  ['traditional','novel'],
+];
+
+function computeTypeCeilings(QUESTIONS, TYPE_ORDER){
+  const ceiling = {}, opportunity = {};
+  TYPE_ORDER.forEach(t => { ceiling[t]=0; opportunity[t]=0; });
+  QUESTIONS.forEach(q => {
+    const maxPerType = {};
+    q.answers.forEach(a => {
+      Object.entries(a.weights).forEach(([t,w]) => { maxPerType[t] = Math.max(maxPerType[t]||0, w); });
+    });
+    Object.entries(maxPerType).forEach(([t,w]) => { ceiling[t]+=w; opportunity[t]+=1; });
+  });
+  return {ceiling, opportunity};
+}
+
+function scoreTypesDetailed(answers, TYPE_ORDER){
+  const raw = {}, questionsHit = {};
+  TYPE_ORDER.forEach(t => { raw[t]=0; questionsHit[t]=new Set(); });
+  answers.forEach((a,i) => {
+    if (!a) return;
+    Object.entries(a.weights).forEach(([t,w]) => { raw[t]+=w; questionsHit[t].add(i); });
+  });
+  return {raw, questionsHit};
+}
+
+function compositeScores(raw, questionsHit, ceiling, opportunity, TYPE_ORDER){
+  const composite = {};
+  TYPE_ORDER.forEach(t => {
+    const norm = ceiling[t] > 0 ? raw[t]/ceiling[t] : 0;
+    const breadth = opportunity[t] > 0 ? questionsHit[t].size/opportunity[t] : 0;
+    composite[t] = norm * (0.65 + 0.35*breadth);
+  });
+  return composite;
+}
+
+function computeAxisVector(answers){
+  let sum=[0,0,0,0,0], totalW=0;
+  answers.forEach(a => {
+    if (!a) return;
+    Object.entries(a.weights).forEach(([t,w]) => {
+      const vec = TYPE_AXES[t];
+      for (let i=0;i<5;i++) sum[i]+=vec[i]*w;
+      totalW+=w;
+    });
+  });
+  return sum.map(v => totalW ? v/totalW : 0);
+}
+function axisDistance(a,b){ let d=0; for(let i=0;i<a.length;i++) d+=(a[i]-b[i])**2; return Math.sqrt(d); }
+
+function rankTypesV2(composite, personAxisVec, TYPE_ORDER, nSeed){
+  const arr = TYPE_ORDER.map(t => ({
+    type:t, score:composite[t],
+    axisDist: axisDistance(personAxisVec, TYPE_AXES[t]),
+    seedTiebreak: (nSeed*17 + TYPE_ORDER.indexOf(t)*31) % 10000
+  }));
+  arr.sort((a,b) => {
+    const denom = Math.max(a.score,b.score,1e-9);
+    const rel = Math.abs(a.score-b.score)/denom;
+    if (rel < 0.03){
+      const dd = a.axisDist - b.axisDist;
+      if (Math.abs(dd) > 1e-9) return dd;
+      return b.seedTiebreak - a.seedTiebreak;
+    }
+    return b.score - a.score;
+  });
+  return arr; // [{type, score, axisDist}, ...] sorted best-first
+}
+
+function buildProfileBlurb(axisVec){
+  const parts = [];
+  AXIS_LABELS.forEach((labels,i) => {
+    const v = axisVec[i];
+    if (v <= -1.0) parts.push(labels[0]);
+    else if (v >= 1.0) parts.push(labels[1]);
+  });
+  if (parts.length === 0) return "Right down the middle across every axis — genuinely balanced.";
+  const joined = parts.length === 1 ? parts[0] : parts.slice(0,-1).join(', ') + ' and ' + parts[parts.length-1];
+  return "Your answers lean " + joined + ".";
+}
+
+
+// ============================================================
+// Quiz app logic
+// ============================================================
+
+const TYPE_ORDER = Object.keys(TYPE_POOLS); // fixed order for deterministic seeding
+
+const state = {
+  name: '',
+  answers: [],       // answers[i] = answer object the person picked for question i, or undefined
+  current: 0
+};
+
+// --- Lightweight personalization seed from the name (not full numerology — just ---
+// --- enough that two different names produce different flavor picks). ---
+function nameSeed(name){
+  let s = 7;
+  const clean = name.trim().toUpperCase();
+  for (let i = 0; i < clean.length; i++){
+    s += clean.charCodeAt(i) * (i + 3);
+  }
+  return s || 7;
+}
+function answerPatternSeed(answers){
+  let s = 11;
+  answers.forEach((a, i) => {
+    if (!a) return;
+    s += (a.answerIndex + 1) * (i + 2) * 13;
+  });
+  return s || 11;
+}
+
+// --- Precomputed once: each type's achievable ceiling and how many questions offer it ---
+const TYPE_CEILINGS = computeTypeCeilings(QUESTIONS, TYPE_ORDER);
+
+// --- Screens ---
+const startScreen = document.getElementById('startScreen');
+const quizScreen = document.getElementById('quizScreen');
+const resultsScreen = document.getElementById('resultsScreen');
+
+function showScreen(el){
+  [startScreen, quizScreen, resultsScreen].forEach(s => s.hidden = (s !== el));
+  window.scrollTo({top: 0, behavior: 'instant' in window ? 'instant' : 'auto'});
+}
+
+// --- Start ---
+document.getElementById('startBtn').addEventListener('click', () => {
+  state.name = document.getElementById('nameInput').value || '';
+  state.current = 0;
+  state.answers = [];
+  showScreen(quizScreen);
+  renderQuestion();
+});
+
+// --- Quiz flow ---
+const progressFill = document.getElementById('progressFill');
+const progressLabel = document.getElementById('progressLabel');
+const qPrompt = document.getElementById('qPrompt');
+const answersWrap = document.getElementById('answersWrap');
+const backBtn = document.getElementById('backBtn');
+
+function renderQuestion(){
+  const i = state.current;
+  const q = QUESTIONS[i];
+  progressFill.style.width = Math.round((i / QUESTIONS.length) * 100) + '%';
+  progressLabel.textContent = `Question ${i + 1} of ${QUESTIONS.length}`;
+  qPrompt.textContent = q.prompt;
+  answersWrap.innerHTML = '';
+  q.answers.forEach((a, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'answer-btn';
+    btn.textContent = a.text;
+    btn.addEventListener('click', () => selectAnswer(idx));
+    answersWrap.appendChild(btn);
+  });
+  backBtn.disabled = (i === 0);
+  backBtn.toggleAttribute('disabled', i === 0);
+}
+
+function selectAnswer(answerIndex){
+  const q = QUESTIONS[state.current];
+  state.answers[state.current] = {
+    answerIndex,
+    weights: q.answers[answerIndex].weights
+  };
+  if (state.current < QUESTIONS.length - 1){
+    state.current++;
+    renderQuestion();
+  } else {
+    computeAndShowResults();
+  }
+}
+
+backBtn.addEventListener('click', () => {
+  if (state.current === 0) return;
+  state.current--;
+  renderQuestion();
+});
+
+// --- Avatar & match selection ---
+function pickAvatars(rankedTop4, compositeMap, nSeed, aSeed, usedKeys){
+  return rankedTop4.map((type, i) => {
+    const pool = TYPE_POOLS[type];
+    const scoreComponent = Math.round((compositeMap[type] || 0) * 1000);
+    const seed = nSeed * 7 + scoreComponent * 13 + i * 29 + aSeed * 3 + i * 101;
+    return { type, mon: pickUniqueFromPool(pool, seed, usedKeys) };
+  });
+}
+
+function buildWeightedPool(rankedTop4){
+  const weights = [5, 3, 2, 1];
+  let pool = [];
+  rankedTop4.forEach((t, i) => {
+    const entries = TYPE_POOLS[t] || [];
+    for (let r = 0; r < weights[i]; r++) pool = pool.concat(entries);
+  });
+  return pool;
+}
+
+function pickMatches(pool, usedKeys, baseSeed, count){
+  const results = [];
+  let s = baseSeed;
+  let guard = 0;
+  while (results.length < count && guard < 800 && usedKeys.size < 482){
+    guard++;
+    s = safeMod(s * 48271 + 12345, 2147483647);
+    const mon = pickUniqueFromPool(pool, s, usedKeys);
+    if (!results.some(r => r.dex === mon.dex && r.name === mon.name)){
+      results.push(mon);
+    }
+  }
+  return results;
+}
+
+// --- Theming (reuses colorForAvatar / accentFromType / hexToRgbString) ---
+function applyResultTheme(primaryMon){
+  const isLight = document.documentElement.classList.contains('light-mode');
+  const primaryHex = colorForAvatar(primaryMon);
+  const [accent, dim] = accentFromType(primaryHex, isLight);
+  const primaryRgb = hexToRgbString(primaryHex);
+  const root = document.documentElement.style;
+  root.setProperty('--gold', accent);
+  root.setProperty('--gold-dim', dim);
+  const glowAlpha1 = isLight ? 0.16 : 0.24;
+  const glowAlpha2 = isLight ? 0.22 : 0.32;
+  const borderAlpha = isLight ? 0.35 : 0.45;
+  const tintAlpha = isLight ? 0.07 : 0.13;
+  root.setProperty('--glow-1', `rgba(${primaryRgb},${glowAlpha1})`);
+  root.setProperty('--glow-2', `rgba(${primaryRgb},${glowAlpha2})`);
+  root.setProperty('--card-border', `rgba(${primaryRgb},${borderAlpha})`);
+  root.setProperty('--card-tint', `rgba(${primaryRgb},${tintAlpha})`);
+  root.setProperty('--avatar-glow', `rgba(${hexToRgbString(accent)},0.45)`);
+}
+function resetTheme(){
+  const root = document.documentElement.style;
+  ['--gold','--gold-dim','--glow-1','--glow-2','--card-border','--card-tint','--avatar-glow']
+    .forEach(p => root.removeProperty(p));
+}
+
+// --- Rendering helpers for a Pokémon image with the two-tier fallback chain ---
+function monImgMarkup(mon, sizeClass){
+  const src = spriteUrl(mon);
+  const onerr = imgFallbackOnError(mon, "this.style.display='none'; this.parentElement.textContent='?';");
+  return `<img src="${src}" alt="${mon.name}" loading="lazy" onerror="${onerr}">`;
+}
+
+// --- Results ---
+let lastResult = null; // kept so the mode toggle can re-theme without recomputing
+
+function computeAndShowResults(){
+  const nSeed = nameSeed(state.name);
+  const aSeed = answerPatternSeed(state.answers);
+
+  const { raw, questionsHit } = scoreTypesDetailed(state.answers, TYPE_ORDER);
+  const composite = compositeScores(raw, questionsHit, TYPE_CEILINGS.ceiling, TYPE_CEILINGS.opportunity, TYPE_ORDER);
+  const axisVec = computeAxisVector(state.answers);
+  const ranked = rankTypesV2(composite, axisVec, TYPE_ORDER, nSeed); // [{type, score, axisDist}, ...]
+  const top4 = ranked.slice(0, 4).map(r => r.type);
+
+  // "close call" flags between consecutive placements (looser threshold than the
+  // internal 3% used to actually re-rank -- this is just an honesty note to the person)
+  const closeCalls = [];
+  for (let i = 0; i < 3; i++){
+    const a = ranked[i], b = ranked[i+1];
+    const rel = Math.abs(a.score - b.score) / Math.max(a.score, b.score, 1e-9);
+    closeCalls.push(rel < 0.08 ? b.type : null);
+  }
+
+  const usedKeys = new Set();
+  const avatars = pickAvatars(top4, composite, nSeed, aSeed, usedKeys);
+  const weightedPool = buildWeightedPool(top4);
+  const matches = pickMatches(weightedPool, usedKeys, nSeed + aSeed, 10);
+  const blurb = buildProfileBlurb(axisVec);
+
+  lastResult = { top4, avatars, matches, primaryMon: avatars[0].mon, closeCalls, blurb };
+  renderResults(lastResult);
+  applyResultTheme(lastResult.primaryMon);
+  showScreen(resultsScreen);
+  enhanceWithOfficialEntries(lastResult);
+}
+
+// --- Async, fail-safe: fetches official Pokédex text per avatar and appends it to the
+// already-rendered card if/when it arrives. Never blocks or replaces the base result --
+// if the fetch fails, is skipped (regional forms / punctuated names), or the person has
+// since restarted the quiz, this simply does nothing further.
+function enhanceWithOfficialEntries(resultRef){
+  resultRef.avatars.forEach((a, i) => {
+    fetchOfficialFlavorText(a.mon).then(text => {
+      if (!text) return;
+      if (lastResult !== resultRef) return; // stale response from a since-abandoned run
+      const card = resultRef.avatarCardElements && resultRef.avatarCardElements[i];
+      if (!card) return;
+      const p = document.createElement('p');
+      p.className = 'avatar-official-text';
+      const label = document.createElement('span');
+      label.className = 'official-label';
+      label.textContent = 'Official Pokédex entry: ';
+      p.appendChild(label);
+      p.appendChild(document.createTextNode('"' + text + '"'));
+      card.appendChild(p);
+    }).catch(() => {});
+  });
+}
+
+function renderResults(result){
+  const name = state.name.trim();
+  document.getElementById('resultsHeading').textContent =
+    name ? `${name}'s Pokétype Profile` : 'Your Pokétype Profile';
+  document.getElementById('resultsSubname').textContent =
+    `Primary type: ${result.top4[0]}`;
+
+  const blurbEl = document.getElementById('resultsBlurb');
+  if (blurbEl) blurbEl.textContent = result.blurb;
+
+  const rankLabels = ['PRIMARY', 'SECONDARY', 'TERTIARY', 'QUATERNARY'];
+
+  const typeStrip = document.getElementById('typeStrip');
+  typeStrip.innerHTML = result.top4.map((t, i) => `
+    <span class="type-pill" style="background:${TYPE_COLORS[t]}">
+      <span class="rank">${i + 1}.</span>${t}
+    </span>
+  `).join('');
+
+  const avatarGrid = document.getElementById('avatarGrid');
+  avatarGrid.innerHTML = '';
+  const cardElements = result.avatars.map((a, i) => {
+    const card = document.createElement('div');
+    card.className = 'avatar-card';
+
+    const rank = document.createElement('div');
+    rank.className = 'avatar-rank';
+    rank.innerHTML = `${rankLabels[i]}${result.closeCalls[i-1] ? ' <span class="close-note">&middot; close call</span>' : ''}`;
+    card.appendChild(rank);
+
+    const header = document.createElement('div');
+    header.className = 'avatar-header';
+    const imgWrap = document.createElement('div');
+    imgWrap.className = 'avatar-img-wrap';
+    imgWrap.innerHTML = monImgMarkup(a.mon);
+    header.appendChild(imgWrap);
+    const textWrap = document.createElement('div');
+    const typeDiv = document.createElement('div');
+    typeDiv.className = 'avatar-type';
+    typeDiv.style.color = TYPE_COLORS[a.type];
+    typeDiv.textContent = a.type;
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'avatar-mon-name';
+    nameDiv.textContent = a.mon.name;
+    textWrap.appendChild(typeDiv);
+    textWrap.appendChild(nameDiv);
+    header.appendChild(textWrap);
+    card.appendChild(header);
+
+    const blurbP = document.createElement('p');
+    blurbP.className = 'avatar-blurb-text';
+    blurbP.textContent = avatarBlurb(a.mon, a.type);
+    card.appendChild(blurbP);
+
+    avatarGrid.appendChild(card);
+    return card;
+  });
+  result.avatarCardElements = cardElements;
+
+  const matchGrid = document.getElementById('matchGrid');
+  matchGrid.innerHTML = result.matches.map(mon => `
+    <div class="match-card">
+      <div class="match-img-wrap">${monImgMarkup(mon)}</div>
+      <div class="match-name">${mon.name}</div>
+      <div class="match-type">${mon.types.join(' / ')}</div>
+    </div>
+  `).join('');
+}
+
+document.getElementById('restartBtn').addEventListener('click', () => {
+  state.name = '';
+  state.answers = [];
+  state.current = 0;
+  lastResult = null;
+  resetTheme();
+  document.getElementById('nameInput').value = '';
+  showScreen(startScreen);
+});
+
+// --- Light/dark mode toggle ---
+function setMode(isLight){
+  document.documentElement.classList.toggle('light-mode', isLight);
+  document.getElementById('darkModeBtn').classList.toggle('active', !isLight);
+  document.getElementById('lightModeBtn').classList.toggle('active', isLight);
+  if (lastResult){
+    applyResultTheme(lastResult.primaryMon);
+  }
+}
+document.getElementById('darkModeBtn').addEventListener('click', () => setMode(false));
+document.getElementById('lightModeBtn').addEventListener('click', () => setMode(true));
+
+showScreen(startScreen);
+
+</script>
+</body>
+</html>
