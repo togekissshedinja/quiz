@@ -301,6 +301,22 @@
     font-style:normal;
     margin-bottom:4px;
   }
+  .avatar-hexaco-text{
+    color:var(--text-muted);
+    font-size:0.85rem;
+    line-height:1.55;
+    margin:12px 0 0;
+    padding-top:12px;
+    border-top:1px solid var(--card-border);
+  }
+  .hexaco-label{
+    display:block;
+    color:var(--gold);
+    font-size:0.7rem;
+    letter-spacing:0.06em;
+    font-weight:600;
+    margin-bottom:4px;
+  }
 
   .matches-heading{
     font-family:'Fraunces', serif;
@@ -401,14 +417,14 @@
     <header>
       <div class="kicker">POKÉTYPE PERSONALITY QUIZ</div>
       <h1>What's your type?</h1>
-      <p>Thirty-one quick questions — answer honestly and we'll sort you into your real elemental type.</p>
+      <p>Seventy-seven questions — scenario picks plus a personality-statement section — answer honestly and we'll sort you into your real elemental type.</p>
     </header>
 
     <div id="startScreen" class="panel">
       <label for="nameInput">Your name (used to personalize your results)</label>
       <input id="nameInput" type="text" placeholder="e.g. Alex" autocomplete="off">
       <button class="start-btn" id="startBtn">Begin the quiz</button>
-      <p class="start-note">Takes about 6-8 minutes. Your answers stay in your browser — nothing is sent anywhere.</p>
+      <p class="start-note">Takes about 12-15 minutes. Your answers stay in your browser — nothing is sent anywhere.</p>
     </div>
 
     <div id="quizScreen" class="panel" hidden>
@@ -434,7 +450,6 @@
 
 <script>
 
-// --- Verified 482-entry Pokémon type pool (reused from Pokédex Astrology app) ---
 const TYPE_POOLS = {
   Fire: [
     {dex:6, name:"Charizard", types:["Fire","Flying"], trait:"fearless, quick to soar"},
@@ -1195,7 +1210,6 @@ const TYPE_POOLS = {
   ],
 };
 
-// --- Official Pokédex color categories + per-Pokémon color map (reused) ---
 const TYPE_COLORS = {
   Fire:'#F08030', Water:'#6890F0', Grass:'#78C850', Electric:'#F8D030',
   Psychic:'#F85888', Ground:'#E0C068', Rock:'#B8A038', Flying:'#A890F0',
@@ -1399,7 +1413,6 @@ function colorForAvatar(avatar){
   return POKEDEX_COLOR_HEX[category] || POKEDEX_COLOR_HEX.Gray;
 }
 
-// --- Deterministic pool-picking helpers (reused) ---
 // they land in the same zodiac sign.
 function pickFromPool(pool, seed){
   const idx = ((seed % pool.length) + pool.length) % pool.length;
@@ -1432,7 +1445,6 @@ function pickUniqueFromPool(pool, seed, usedKeys){
   return pool[idx0];
 }
 
-// --- Sprite/artwork two-tier fallback chain (reused) ---
 function spriteUrl(avatar){
   // GitHub's raw sprite repo is built for exactly this kind of embedding and
   // doesn't hotlink-block, unlike pokemondb — use it by default. It's indexed by
@@ -1480,7 +1492,6 @@ function imgFallbackOnError(avatar, finalJs){
   return `this.onerror=function(){${finalJs}};this.src='${altUrl}';`;
 }
 
-// --- Per-avatar and per-type reading text (reused/adapted), plus optional live PokeAPI enrichment ---
 const AVATAR_BLURB_TEMPLATES = [
   (a) => `${a.name} is the specific Pokémon standing in for this placement — a ${a.types.join('/')}-type known for being ${a.trait}.`,
   (a) => `This placement lands on ${a.name}: ${a.types.join('/')}-type, ${a.trait}.`,
@@ -1560,7 +1571,28 @@ async function fetchOfficialFlavorText(mon){
   }
 }
 
-// --- Quiz questions (31 total, 7-9 answer options each; weights balanced ~50-52 per type) ---
+// --- Joan's own HEXACO-based type descriptions, added as an additional reading alongside
+// the existing type-personality writing (not a replacement) ---
+const HEXACO_TYPE_BLURBS = {
+  Water: "Waters are best described as empaths. They are deeply emotionally sensitive, and good at listening to and validating others' struggles. Waters strongly value their relationships, put great effort into making their loved ones feel special, and often openly express their affection. Because Waters are so emotionally sensitive, they may take things personally even when they are not meant to be, and can be prone to anxiety and depression.",
+  Dark: "Darks are very creative and able to come up with clever solutions to problems. Usually, Darks are most efficient working alone, rather than with teammates. They tend to be people-smart, able to see through tricks and protect themselves from being taken advantage of. Darks may appear distrustful and withdrawn, but they have a tender emotional core and want to have a strong bond with someone who understands them.",
+  Fire: "Fires are passionate about advocating for the disadvantaged and fighting for causes that they believe in. They can often persude others through their charisma, and their passion for their beliefs is contagious. Also, Fires tend to make great leaders, as they can inspire others to strive for a higher vision. However, they may need to be careful not to be overly loud or offensive in the way they communicate with others.",
+  Dragon: "Dragons are the natural leaders of the world. They often have strong personal ambitions and a grand vision for society's future. Most Dragons are able to take charge, give clear directions, and lead groups in unity. Also, Dragons tend to keep calm in emergencies and work well under pressure. However, Dragons may be overly perfectionistic, and can be impatient with others who do not fulfill their high standards.",
+  Ghost: "Ghosts are the quiet observers of the world. They tend to be highly interested in philosophy, spirituality, and artistic pursuits. They enjoy watching and listening more than speaking, and often meditate deeply about ideas that interest them. Because Ghosts have a unique way of thinking, they can be fascinating to speak with, though they tend to be highly introverted, and may struggle with social anxiety.",
+  Steel: "Steels are highly studious and diligent, and often excel in scientific areas. They are usually willing to help others complete important tasks, even if they're tired or busy. Most Steels are very consistent and trustworthy, and keep the commitments they make. Though Steels are highly intelligent, it can be difficult for them to consider new points of view or change their minds from what they believe to be the truth.",
+  Psychic: "Psychics are, simply put, geniuses. They can analyze, synthesize, and memorize information quickly, and often combine many different areas of study to make unique insights or innovations. Most Psychics enjoy reading a variety of books, visiting faraway places, and learning all they can about many different topics and ideas. However, Psychics may not be as emotionally sensitive or empathetic towards others.",
+  Electric: "Electrics live life at high speed. They are highly energetic, efficient multitaskers, and can learn new skills quickly. Electrics have a strong sense of humor, compliment and encourage others often, and can spread joy wherever they go. Electrics also enjoy improvising and experimenting with new ideas. However, because Electrics are so fast-paced, they can get easily distracted and struggle to focus on one thing at a time.",
+  Ice: "Ices hold themselves to very high standards, and often appear sophisticated and refined. They hold ambitious goals, and will work diligently to cultivate their talents. Ices also value beauty, and can often recognize small beautiful details in things where others may not notice. While Ices are often charismatic and skilled speakers, they can be overly concerned with their public image, and afraid to be true to themselves.",
+  Ground: "Grounds are often perceived as mature for their age, because they tend to take on a parental role. They are often very patient, which makes them excellent teachers or coaches. Grounds can diffuse tense situations by looking at things objectively and finding common ground with others. Because Grounds present themselves as confident and capable, they may feel uncomfortable seeking help, even when they need it.",
+  Grass: "Grasses are generally calm and gentle in demeanor. They often make excellent teachers or therapists, as they nurture and encourage those they speak to. Also, Grasses are usually in tune with nature, invested in protecting the environment, and enjoy the beauty of animals and plants around them. Many Grasses tend to be more spiritually and artistically minded, and may struggle with rigorous academics or athletics.",
+  Flying: "Fliers enjoy traveling to faraway places and learning about many different cultures. They often enjoy a good challenge, whether it is intense exercise or learning a complex skill, and tend to be fast learners. They make excellent storytellers and teachers, and their enthusiasm for learning is contagious. Because they love exploring so much, Fliers may struggle to settle down in one place or commit to long-term decisions.",
+  Fighting: "Fighters work tirelessly to accomplish even the most ambitious goals. They are highly disciplined and keep their commitments. Also, Fighters care deeply about close friends and family, and will protect them at all costs. Usually, Fighters will enthusiastically follow authority figures, but only if their respect is earned first. Though they are fiercely loyal to those that they love, they may feel threatened and get angry easily.",
+  Fairy: "Fairies are cheerful, playful, and able to cheer people up even in grim situations. They are often interested in fantasy, sci-fi, and supernatural ideas, and enjoy the visual and performing arts. Also, Fairies tend to be open-minded and enjoy getting to know people from all walks of life. Though they are fun and exciting to be around, they may get easily overwhelmed by decision-making or goal-setting.",
+  Poison: "Poisons are, essentially, adrenaline junkies! They thrive off of challenging themselves beyond what anyone thought possible, adventuring to exciting places, and strengthening their skills to high levels. Poisons tend to be highly charismatic and entertaining, and enjoy spending time with large groups of friends. However, because Poisons have a rebellious streak, they may risk endangering themselves or others.",
+  Bug: "Bugs care strongly about working with other people to benefit the community. They are much more selfless than selfish. They usually value having a strong group identity and have high respect for authority figures. Also, Bugs are good at completing tasks efficiently and following the established rules. Although Bug-types are great at working with teammates, they may struggle to open up emotionally with people close to them.",
+  Rock: "Rocks are keenly aware of the sacrifices made for the privileges they have, and they take time often to acknowledge those sacrifices. Tradition, history, and family are of highest importance to Rocks. They tend to be strong and good at working with their hands, and they work hard so their families can have good lives. However, Rocks tend to be stubborn, and struggle to adapt to changes in their lives or in society.",
+  Normal: "Normals are warm and kind to others, regardless of whether that kindness is reciprocated. They are often content with a simple life without many luxuries, and express gratitude frequently for the blessings they have. Normals prefer to spend most of their time at home, and find joy in their families. Though they are very kind to all people, they may sometimes endanger themselves by being too trusting of others.",
+};
 const QUESTIONS = [
   {
     prompt: "When a big problem lands on your plate, your first move is to...",
@@ -1946,8 +1978,480 @@ const QUESTIONS = [
       { text: "Open air, nothing overhead", weights: {Flying:3, Grass:1} },
     ]
   },
+
+  {
+    prompt: "What kind of career would you most like to have?",
+    answers: [
+      { text: "Something practical, like engineering or construction", weights: {Ground:3, Steel:1} },
+      { text: "Something creative, like an artist or a performer", weights: {Fairy:3, Electric:1} },
+      { text: "Something that protects people, like a police officer or firefighter", weights: {Dragon:3, Fighting:1} },
+      { text: "Something nurturing, like a teacher or nurse", weights: {Grass:3, Fairy:1} },
+      { text: "I'd rather stay home and focus on my family", weights: {Normal:3, Water:1} },
+      { text: "Something international, like a pilot or diplomat", weights: {Flying:3, Psychic:1} },
+    ]
+  },
+  {
+    prompt: "What kind of pet would you most like to have?",
+    answers: [
+      { text: "Something interesting, like an exotic fish or reptile", weights: {Bug:3, Psychic:1} },
+      { text: "A strong, loyal horse I can ride around", weights: {Rock:3, Ground:1} },
+      { text: "A beautiful, calm, well-behaved cat", weights: {Ice:3, Fairy:1} },
+      { text: "An energetic dog who likes to run and play", weights: {Fighting:3, Electric:1} },
+      { text: "I'd rather not \u2014 I want my house quiet and orderly", weights: {Steel:3, Ghost:1} },
+      { text: "Honestly, whatever finds its way to me", weights: {Normal:3, Grass:1} },
+    ]
+  },
+  {
+    prompt: "What's the most beautiful thing to you?",
+    answers: [
+      { text: "The peaceful quiet of freshly fallen snow", weights: {Ice:3, Ghost:1} },
+      { text: "The ocean waves on a sandy beach", weights: {Water:3, Normal:1} },
+      { text: "A meadow with baby animals playing together", weights: {Normal:3, Fairy:1} },
+      { text: "A huge canyon with dramatic rock formations", weights: {Ground:3, Rock:1} },
+      { text: "A vividly colored sunset", weights: {Fairy:3, Fire:1} },
+      { text: "A spring field full of colorful flowers", weights: {Grass:3, Fairy:1} },
+    ]
+  },
+  {
+    prompt: "What matters most to you when raising children?",
+    answers: [
+      { text: "Give them useful skills to build a good living", weights: {Steel:3, Ground:1} },
+      { text: "Teach them to continue their heritage's traditions", weights: {Rock:3, Normal:1} },
+      { text: "Just make home a happy, comfortable place", weights: {Normal:3, Grass:1} },
+      { text: "Show them enough options to decide for themselves", weights: {Psychic:3, Flying:1} },
+      { text: "Teach habits that keep them healthy and safe", weights: {Fighting:3, Ground:1} },
+      { text: "Teach the value of hard work and helping others", weights: {Bug:3, Steel:1} },
+    ]
+  },
+  {
+    prompt: "What's your ideal date?",
+    answers: [
+      { text: "Visiting a historical site or natural wonder", weights: {Fire:3, Rock:1} },
+      { text: "Going out for ice cream, nothing fancy", weights: {Fairy:3, Normal:1} },
+      { text: "I don't plan much \u2014 just hanging out", weights: {Flying:3, Water:1} },
+      { text: "Something adventurous, like mountain biking or skiing", weights: {Poison:3, Fighting:1} },
+      { text: "A fancy restaurant", weights: {Dragon:3, Fairy:1} },
+      { text: "A concert or a comedy show", weights: {Electric:3, Fire:1} },
+    ]
+  },
+  {
+    prompt: "What kind of home would you prefer to live in?",
+    answers: [
+      { text: "A small, comfortable condo with just the essentials", weights: {Fighting:3, Steel:1} },
+      { text: "A beautiful villa with a garden, pool, and library", weights: {Dragon:3, Fairy:1} },
+      { text: "I'd rather keep seeing the world than settle anywhere", weights: {Fire:3, Flying:1} },
+      { text: "Somewhere with roommates who like doing fun things", weights: {Poison:3, Normal:1} },
+      { text: "Somewhere far away and quiet, like a cabin", weights: {Ghost:3, Grass:1} },
+      { text: "Mid-sized, with room for a study and my collections", weights: {Psychic:3, Bug:1} },
+    ]
+  },
+  {
+    prompt: "What's your favorite subject to study?",
+    answers: [
+      { text: "Visual arts or literature", weights: {Dark:3, Fairy:1} },
+      { text: "Biology, psychology, or medicine", weights: {Bug:3, Psychic:1} },
+      { text: "World cultures, history, or languages", weights: {Flying:3, Normal:1} },
+      { text: "Music, dance, or other performing arts", weights: {Electric:3, Fairy:1} },
+      { text: "Woodworking, agriculture, or other practical trades", weights: {Rock:3, Ground:1} },
+      { text: "Physics, technology, or mathematics", weights: {Steel:3, Psychic:1} },
+    ]
+  },
+  {
+    prompt: "If you had one wish, what would it be?",
+    answers: [
+      { text: "To just feel understood and loved", weights: {Dark:3, Water:1} },
+      { text: "To lead and unite people toward something good", weights: {Dragon:3, Normal:1} },
+      { text: "To become amazingly talented at my chosen skill", weights: {Electric:3, Fighting:1} },
+      { text: "To go back and change the past", weights: {Ghost:3, Ice:1} },
+      { text: "To grow wings and fly", weights: {Flying:3, Dragon:1} },
+      { text: "To have the answers to my existential questions", weights: {Psychic:3, Ghost:1} },
+    ]
+  },
+  {
+    prompt: "What kind of person annoys you the most?",
+    answers: [
+      { text: "People who just sit and talk instead of doing anything", weights: {Poison:3, Electric:1} },
+      { text: "People who joke around about serious things", weights: {Ghost:3, Rock:1} },
+      { text: "People who don't keep their commitments", weights: {Fighting:3, Steel:1} },
+      { text: "People who pressure me to get out and be social", weights: {Dark:3, Ghost:1} },
+      { text: "People who talk about themselves and don't listen", weights: {Water:3, Fairy:1} },
+      { text: "People who criticize what I say", weights: {Fire:3, Dragon:1} },
+    ]
+  },
+  {
+    prompt: "What kind of person would you most like to spend time with?",
+    answers: [
+      { text: "Someone from far away with interesting stories to tell", weights: {Flying:3, Fire:1} },
+      { text: "Someone willing to listen and empathize", weights: {Water:3, Fairy:1} },
+      { text: "Someone who's known me since childhood", weights: {Normal:3, Rock:1} },
+      { text: "Someone who tells jokes and likes to play games", weights: {Fairy:3, Electric:1} },
+      { text: "Someone not afraid to tell it like it is", weights: {Fire:3, Fighting:1} },
+      { text: "Someone gentle, calm, and quiet", weights: {Grass:3, Ice:1} },
+    ]
+  },
+
+  {
+    prompt: "How often does this describe you: \"I pretend to be someone I'm not.\"",
+    answers: [
+      { text: "Always", weights: {Water:1, Fire:1, Grass:1, Steel:2, Ground:2, Rock:3, Bug:3, Normal:4} },
+      { text: "Often", weights: {Fire:1, Grass:1, Steel:1, Ground:1, Rock:1, Bug:2, Normal:2} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Poison:2, Dark:2, Fairy:1, Dragon:1, Flying:1, Electric:1, Ice:1} },
+      { text: "Never", weights: {Poison:4, Dark:3, Fairy:3, Dragon:2, Flying:2, Electric:1, Ice:1, Psychic:1} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"I want someone to sit with me and comfort me when I am upset.\"",
+    answers: [
+      { text: "Always", weights: {Bug:4, Psychic:3, Electric:3, Steel:2, Rock:2, Ice:1, Ground:1, Fairy:1} },
+      { text: "Often", weights: {Bug:2, Psychic:2, Electric:1, Steel:1, Rock:1, Ice:1, Ground:1} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Flying:1, Poison:1, Ghost:1, Fighting:1, Dark:1, Water:2, Fire:2} },
+      { text: "Never", weights: {Normal:1, Flying:1, Poison:1, Ghost:2, Fighting:2, Dark:3, Water:3, Fire:4} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"I feel good about myself.\"",
+    answers: [
+      { text: "Always", weights: {Ghost:4, Ice:3, Grass:3, Dark:2, Ground:2, Water:1, Steel:1, Rock:1} },
+      { text: "Often", weights: {Ghost:2, Ice:2, Grass:1, Dark:1, Ground:1, Water:1, Steel:1} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Bug:1, Fire:1, Fairy:1, Flying:1, Poison:1, Dragon:2, Electric:2} },
+      { text: "Never", weights: {Fighting:1, Bug:1, Fire:1, Fairy:2, Flying:2, Poison:3, Dragon:3, Electric:4} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"When someone makes mistakes, I tell them what they did wrong.\"",
+    answers: [
+      { text: "Always", weights: {Rock:1, Steel:1, Ice:1, Water:2, Normal:2, Ground:3, Fairy:3, Grass:4} },
+      { text: "Often", weights: {Steel:1, Ice:1, Water:1, Normal:1, Ground:1, Fairy:2, Grass:2} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Fighting:2, Dragon:2, Fire:1, Poison:1, Ghost:1, Psychic:1, Dark:1} },
+      { text: "Never", weights: {Fighting:4, Dragon:3, Fire:3, Poison:2, Ghost:2, Psychic:1, Dark:1, Bug:1} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"I plan ahead so I'm not stressed at the last minute.\"",
+    answers: [
+      { text: "Always", weights: {Flying:4, Water:3, Normal:3, Fairy:2, Fire:2, Grass:1, Ghost:1, Poison:1} },
+      { text: "Often", weights: {Flying:2, Water:2, Normal:1, Fairy:1, Fire:1, Grass:1, Ghost:1} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Ground:1, Psychic:1, Rock:1, Bug:1, Ice:1, Fighting:2, Steel:2} },
+      { text: "Never", weights: {Dragon:1, Ground:1, Psychic:1, Rock:2, Bug:2, Ice:3, Fighting:3, Steel:4} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"I enjoy talking to people who have different worldviews from mine.\"",
+    answers: [
+      { text: "Always", weights: {Steel:4, Rock:3, Ground:3, Normal:2, Fighting:2, Bug:1, Fire:1, Grass:1} },
+      { text: "Often", weights: {Steel:2, Rock:2, Ground:1, Normal:1, Fighting:1, Bug:1, Fire:1} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Fairy:1, Dark:1, Dragon:1, Electric:1, Ghost:1, Flying:2, Psychic:2} },
+      { text: "Never", weights: {Poison:1, Fairy:1, Dark:1, Dragon:2, Electric:2, Ghost:3, Flying:3, Psychic:4} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"I follow the letter of the law.\"",
+    answers: [
+      { text: "Always", weights: {Poison:4, Dark:3, Fairy:3, Dragon:2, Flying:2, Electric:1, Ice:1, Psychic:1} },
+      { text: "Often", weights: {Poison:2, Dark:2, Fairy:1, Dragon:1, Flying:1, Electric:1, Ice:1} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Fire:1, Grass:1, Steel:1, Ground:1, Rock:1, Bug:2, Normal:2} },
+      { text: "Never", weights: {Water:1, Fire:1, Grass:1, Steel:2, Ground:2, Rock:3, Bug:3, Normal:4} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"I worry about many things outside of my control.\"",
+    answers: [
+      { text: "Always", weights: {Bug:4, Psychic:3, Electric:3, Steel:2, Rock:2, Ice:1, Ground:1, Fairy:1} },
+      { text: "Often", weights: {Bug:2, Psychic:2, Electric:1, Steel:1, Rock:1, Ice:1, Ground:1} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Flying:1, Poison:1, Ghost:1, Fighting:1, Dark:1, Water:2, Fire:2} },
+      { text: "Never", weights: {Normal:1, Flying:1, Poison:1, Ghost:2, Fighting:2, Dark:3, Water:3, Fire:4} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"I express my opinions during group discussions.\"",
+    answers: [
+      { text: "Always", weights: {Ghost:4, Ice:3, Grass:3, Dark:2, Ground:2, Water:1, Steel:1, Rock:1} },
+      { text: "Often", weights: {Ghost:2, Ice:2, Grass:1, Dark:1, Ground:1, Water:1, Steel:1} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Bug:1, Fire:1, Fairy:1, Flying:1, Poison:1, Dragon:2, Electric:2} },
+      { text: "Never", weights: {Fighting:1, Bug:1, Fire:1, Fairy:2, Flying:2, Poison:3, Dragon:3, Electric:4} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"People say that I am very patient.\"",
+    answers: [
+      { text: "Always", weights: {Fighting:4, Dragon:3, Fire:3, Poison:2, Ghost:2, Psychic:1, Dark:1, Bug:1} },
+      { text: "Often", weights: {Fighting:2, Dragon:2, Fire:1, Poison:1, Ghost:1, Psychic:1, Dark:1} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Steel:1, Ice:1, Water:1, Normal:1, Ground:1, Fairy:2, Grass:2} },
+      { text: "Never", weights: {Rock:1, Steel:1, Ice:1, Water:2, Normal:2, Ground:3, Fairy:3, Grass:4} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"I push myself very hard to reach my goals.\"",
+    answers: [
+      { text: "Always", weights: {Flying:4, Water:3, Normal:3, Fairy:2, Fire:2, Grass:1, Ghost:1, Poison:1} },
+      { text: "Often", weights: {Flying:2, Water:2, Normal:1, Fairy:1, Fire:1, Grass:1, Ghost:1} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Ground:1, Psychic:1, Rock:1, Bug:1, Ice:1, Fighting:2, Steel:2} },
+      { text: "Never", weights: {Dragon:1, Ground:1, Psychic:1, Rock:2, Bug:2, Ice:3, Fighting:3, Steel:4} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"I want to learn about the culture and history of lots of other countries.\"",
+    answers: [
+      { text: "Always", weights: {Steel:4, Rock:3, Ground:3, Normal:2, Fighting:2, Bug:1, Fire:1, Grass:1} },
+      { text: "Often", weights: {Steel:2, Rock:2, Ground:1, Normal:1, Fighting:1, Bug:1, Fire:1} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Fairy:1, Dark:1, Dragon:1, Electric:1, Ghost:1, Flying:2, Psychic:2} },
+      { text: "Never", weights: {Poison:1, Fairy:1, Dark:1, Dragon:2, Electric:2, Ghost:3, Flying:3, Psychic:4} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"I feel like I deserve more respect than the average person.\"",
+    answers: [
+      { text: "Always", weights: {Water:1, Fire:1, Grass:1, Steel:2, Ground:2, Rock:3, Bug:3, Normal:4} },
+      { text: "Often", weights: {Fire:1, Grass:1, Steel:1, Ground:1, Rock:1, Bug:2, Normal:2} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Poison:2, Dark:2, Fairy:1, Dragon:1, Flying:1, Electric:1, Ice:1} },
+      { text: "Never", weights: {Poison:4, Dark:3, Fairy:3, Dragon:2, Flying:2, Electric:1, Ice:1, Psychic:1} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"I feel depressed, or like I am a burden to others.\"",
+    answers: [
+      { text: "Always", weights: {Bug:4, Psychic:3, Electric:3, Steel:2, Rock:2, Ice:1, Ground:1, Fairy:1} },
+      { text: "Often", weights: {Bug:2, Psychic:2, Electric:1, Steel:1, Rock:1, Ice:1, Ground:1} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Flying:1, Poison:1, Ghost:1, Fighting:1, Dark:1, Water:2, Fire:2} },
+      { text: "Never", weights: {Normal:1, Flying:1, Poison:1, Ghost:2, Fighting:2, Dark:3, Water:3, Fire:4} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"I would rather have a job that requires active social interaction than work alone.\"",
+    answers: [
+      { text: "Always", weights: {Ghost:4, Ice:3, Grass:3, Dark:2, Ground:2, Water:1, Steel:1, Rock:1} },
+      { text: "Often", weights: {Ghost:2, Ice:2, Grass:1, Dark:1, Ground:1, Water:1, Steel:1} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Bug:1, Fire:1, Fairy:1, Flying:1, Poison:1, Dragon:2, Electric:2} },
+      { text: "Never", weights: {Fighting:1, Bug:1, Fire:1, Fairy:2, Flying:2, Poison:3, Dragon:3, Electric:4} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"My attitude toward those who treat me poorly is \"forgive and forget.\"\"",
+    answers: [
+      { text: "Always", weights: {Fighting:4, Dragon:3, Fire:3, Poison:2, Ghost:2, Psychic:1, Dark:1, Bug:1} },
+      { text: "Often", weights: {Fighting:2, Dragon:2, Fire:1, Poison:1, Ghost:1, Psychic:1, Dark:1} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Steel:1, Ice:1, Water:1, Normal:1, Ground:1, Fairy:2, Grass:2} },
+      { text: "Never", weights: {Rock:1, Steel:1, Ice:1, Water:2, Normal:2, Ground:3, Fairy:3, Grass:4} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"I have a hard time staying organized at work.\"",
+    answers: [
+      { text: "Always", weights: {Dragon:1, Ground:1, Psychic:1, Rock:2, Bug:2, Ice:3, Fighting:3, Steel:4} },
+      { text: "Often", weights: {Ground:1, Psychic:1, Rock:1, Bug:1, Ice:1, Fighting:2, Steel:2} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Flying:2, Water:2, Normal:1, Fairy:1, Fire:1, Grass:1, Ghost:1} },
+      { text: "Never", weights: {Flying:4, Water:3, Normal:3, Fairy:2, Fire:2, Grass:1, Ghost:1, Poison:1} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"I spend time creating art, making music or writing creatively.\"",
+    answers: [
+      { text: "Always", weights: {Steel:4, Rock:3, Ground:3, Normal:2, Fighting:2, Bug:1, Fire:1, Grass:1} },
+      { text: "Often", weights: {Steel:2, Rock:2, Ground:1, Normal:1, Fighting:1, Bug:1, Fire:1} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Fairy:1, Dark:1, Dragon:1, Electric:1, Ghost:1, Flying:2, Psychic:2} },
+      { text: "Never", weights: {Poison:1, Fairy:1, Dark:1, Dragon:2, Electric:2, Ghost:3, Flying:3, Psychic:4} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"I speak the absolute truth.\"",
+    answers: [
+      { text: "Always", weights: {Poison:4, Dark:3, Fairy:3, Dragon:2, Flying:2, Electric:1, Ice:1, Psychic:1} },
+      { text: "Often", weights: {Poison:2, Dark:2, Fairy:1, Dragon:1, Flying:1, Electric:1, Ice:1} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Fire:1, Grass:1, Steel:1, Ground:1, Rock:1, Bug:2, Normal:2} },
+      { text: "Never", weights: {Water:1, Fire:1, Grass:1, Steel:2, Ground:2, Rock:3, Bug:3, Normal:4} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"I express my emotions openly.\"",
+    answers: [
+      { text: "Always", weights: {Bug:4, Psychic:3, Electric:3, Steel:2, Rock:2, Ice:1, Ground:1, Fairy:1} },
+      { text: "Often", weights: {Bug:2, Psychic:2, Electric:1, Steel:1, Rock:1, Ice:1, Ground:1} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Flying:1, Poison:1, Ghost:1, Fighting:1, Dark:1, Water:2, Fire:2} },
+      { text: "Never", weights: {Normal:1, Flying:1, Poison:1, Ghost:2, Fighting:2, Dark:3, Water:3, Fire:4} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"In general, I am optimistic and cheerful.\"",
+    answers: [
+      { text: "Always", weights: {Ghost:4, Ice:3, Grass:3, Dark:2, Ground:2, Water:1, Steel:1, Rock:1} },
+      { text: "Often", weights: {Ghost:2, Ice:2, Grass:1, Dark:1, Ground:1, Water:1, Steel:1} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Bug:1, Fire:1, Fairy:1, Flying:1, Poison:1, Dragon:2, Electric:2} },
+      { text: "Never", weights: {Fighting:1, Bug:1, Fire:1, Fairy:2, Flying:2, Poison:3, Dragon:3, Electric:4} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"If someone says that I'm wrong, I immediately argue with them.\"",
+    answers: [
+      { text: "Always", weights: {Rock:1, Steel:1, Ice:1, Water:2, Normal:2, Ground:3, Fairy:3, Grass:4} },
+      { text: "Often", weights: {Steel:1, Ice:1, Water:1, Normal:1, Ground:1, Fairy:2, Grass:2} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Fighting:2, Dragon:2, Fire:1, Poison:1, Ghost:1, Psychic:1, Dark:1} },
+      { text: "Never", weights: {Fighting:4, Dragon:3, Fire:3, Poison:2, Ghost:2, Psychic:1, Dark:1, Bug:1} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"People tell me that I am a perfectionist.\"",
+    answers: [
+      { text: "Always", weights: {Flying:4, Water:3, Normal:3, Fairy:2, Fire:2, Grass:1, Ghost:1, Poison:1} },
+      { text: "Often", weights: {Flying:2, Water:2, Normal:1, Fairy:1, Fire:1, Grass:1, Ghost:1} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Ground:1, Psychic:1, Rock:1, Bug:1, Ice:1, Fighting:2, Steel:2} },
+      { text: "Never", weights: {Dragon:1, Ground:1, Psychic:1, Rock:2, Bug:2, Ice:3, Fighting:3, Steel:4} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"I am willing to explore ideas that might be considered radical or unconventional.\"",
+    answers: [
+      { text: "Always", weights: {Steel:4, Rock:3, Ground:3, Normal:2, Fighting:2, Bug:1, Fire:1, Grass:1} },
+      { text: "Often", weights: {Steel:2, Rock:2, Ground:1, Normal:1, Fighting:1, Bug:1, Fire:1} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Fairy:1, Dark:1, Dragon:1, Electric:1, Ghost:1, Flying:2, Psychic:2} },
+      { text: "Never", weights: {Poison:1, Fairy:1, Dark:1, Dragon:2, Electric:2, Ghost:3, Flying:3, Psychic:4} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"I love owning expensive things.\"",
+    answers: [
+      { text: "Always", weights: {Water:1, Fire:1, Grass:1, Steel:2, Ground:2, Rock:3, Bug:3, Normal:4} },
+      { text: "Often", weights: {Fire:1, Grass:1, Steel:1, Ground:1, Rock:1, Bug:2, Normal:2} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Poison:2, Dark:2, Fairy:1, Dragon:1, Flying:1, Electric:1, Ice:1} },
+      { text: "Never", weights: {Poison:4, Dark:3, Fairy:3, Dragon:2, Flying:2, Electric:1, Ice:1, Psychic:1} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"I am very afraid of physical danger.\"",
+    answers: [
+      { text: "Always", weights: {Bug:4, Psychic:3, Electric:3, Steel:2, Rock:2, Ice:1, Ground:1, Fairy:1} },
+      { text: "Often", weights: {Bug:2, Psychic:2, Electric:1, Steel:1, Rock:1, Ice:1, Ground:1} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Flying:1, Poison:1, Ghost:1, Fighting:1, Dark:1, Water:2, Fire:2} },
+      { text: "Never", weights: {Normal:1, Flying:1, Poison:1, Ghost:2, Fighting:2, Dark:3, Water:3, Fire:4} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"I feel like I am unpopular.\"",
+    answers: [
+      { text: "Always", weights: {Fighting:1, Bug:1, Fire:1, Fairy:2, Flying:2, Poison:3, Dragon:3, Electric:4} },
+      { text: "Often", weights: {Bug:1, Fire:1, Fairy:1, Flying:1, Poison:1, Dragon:2, Electric:2} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Ghost:2, Ice:2, Grass:1, Dark:1, Ground:1, Water:1, Steel:1} },
+      { text: "Never", weights: {Ghost:4, Ice:3, Grass:3, Dark:2, Ground:2, Water:1, Steel:1, Rock:1} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"My opinions can be flexible when people disagree with me.\"",
+    answers: [
+      { text: "Always", weights: {Fighting:4, Dragon:3, Fire:3, Poison:2, Ghost:2, Psychic:1, Dark:1, Bug:1} },
+      { text: "Often", weights: {Fighting:2, Dragon:2, Fire:1, Poison:1, Ghost:1, Psychic:1, Dark:1} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Steel:1, Ice:1, Water:1, Normal:1, Ground:1, Fairy:2, Grass:2} },
+      { text: "Never", weights: {Rock:1, Steel:1, Ice:1, Water:2, Normal:2, Ground:3, Fairy:3, Grass:4} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"I try to be as accurate as possible in my work, even if it takes a long time.\"",
+    answers: [
+      { text: "Always", weights: {Flying:4, Water:3, Normal:3, Fairy:2, Fire:2, Grass:1, Ghost:1, Poison:1} },
+      { text: "Often", weights: {Flying:2, Water:2, Normal:1, Fairy:1, Fire:1, Grass:1, Ghost:1} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Ground:1, Psychic:1, Rock:1, Bug:1, Ice:1, Fighting:2, Steel:2} },
+      { text: "Never", weights: {Dragon:1, Ground:1, Psychic:1, Rock:2, Bug:2, Ice:3, Fighting:3, Steel:4} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"I enjoy reading an encyclopedia or textbook.\"",
+    answers: [
+      { text: "Always", weights: {Steel:4, Rock:3, Ground:3, Normal:2, Fighting:2, Bug:1, Fire:1, Grass:1} },
+      { text: "Often", weights: {Steel:2, Rock:2, Ground:1, Normal:1, Fighting:1, Bug:1, Fire:1} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Fairy:1, Dark:1, Dragon:1, Electric:1, Ghost:1, Flying:2, Psychic:2} },
+      { text: "Never", weights: {Poison:1, Fairy:1, Dark:1, Dragon:2, Electric:2, Ghost:3, Flying:3, Psychic:4} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"I brag about myself.\"",
+    answers: [
+      { text: "Always", weights: {Water:1, Fire:1, Grass:1, Steel:2, Ground:2, Rock:3, Bug:3, Normal:4} },
+      { text: "Often", weights: {Fire:1, Grass:1, Steel:1, Ground:1, Rock:1, Bug:2, Normal:2} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Poison:2, Dark:2, Fairy:1, Dragon:1, Flying:1, Electric:1, Ice:1} },
+      { text: "Never", weights: {Poison:4, Dark:3, Fairy:3, Dragon:2, Flying:2, Electric:1, Ice:1, Psychic:1} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"I keep calm during emergencies.\"",
+    answers: [
+      { text: "Always", weights: {Normal:1, Flying:1, Poison:1, Ghost:2, Fighting:2, Dark:3, Water:3, Fire:4} },
+      { text: "Often", weights: {Flying:1, Poison:1, Ghost:1, Fighting:1, Dark:1, Water:2, Fire:2} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Bug:2, Psychic:2, Electric:1, Steel:1, Rock:1, Ice:1, Ground:1} },
+      { text: "Never", weights: {Bug:4, Psychic:3, Electric:3, Steel:2, Rock:2, Ice:1, Ground:1, Fairy:1} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"In social situations, I usually make the first move.\"",
+    answers: [
+      { text: "Always", weights: {Ghost:4, Ice:3, Grass:3, Dark:2, Ground:2, Water:1, Steel:1, Rock:1} },
+      { text: "Often", weights: {Ghost:2, Ice:2, Grass:1, Dark:1, Ground:1, Water:1, Steel:1} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Bug:1, Fire:1, Fairy:1, Flying:1, Poison:1, Dragon:2, Electric:2} },
+      { text: "Never", weights: {Fighting:1, Bug:1, Fire:1, Fairy:2, Flying:2, Poison:3, Dragon:3, Electric:4} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"I get angry easily.\"",
+    answers: [
+      { text: "Always", weights: {Rock:1, Steel:1, Ice:1, Water:2, Normal:2, Ground:3, Fairy:3, Grass:4} },
+      { text: "Often", weights: {Steel:1, Ice:1, Water:1, Normal:1, Ground:1, Fairy:2, Grass:2} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Fighting:2, Dragon:2, Fire:1, Poison:1, Ghost:1, Psychic:1, Dark:1} },
+      { text: "Never", weights: {Fighting:4, Dragon:3, Fire:3, Poison:2, Ghost:2, Psychic:1, Dark:1, Bug:1} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"I act on impulse without thinking about it first.\"",
+    answers: [
+      { text: "Always", weights: {Dragon:1, Ground:1, Psychic:1, Rock:2, Bug:2, Ice:3, Fighting:3, Steel:4} },
+      { text: "Often", weights: {Ground:1, Psychic:1, Rock:1, Bug:1, Ice:1, Fighting:2, Steel:2} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Flying:2, Water:2, Normal:1, Fairy:1, Fire:1, Grass:1, Ghost:1} },
+      { text: "Never", weights: {Flying:4, Water:3, Normal:3, Fairy:2, Fire:2, Grass:1, Ghost:1, Poison:1} },
+    ]
+  },
+  {
+    prompt: "How often does this describe you: \"I think discussing philosophy is boring.\"",
+    answers: [
+      { text: "Always", weights: {Poison:1, Fairy:1, Dark:1, Dragon:2, Electric:2, Ghost:3, Flying:3, Psychic:4} },
+      { text: "Often", weights: {Fairy:1, Dark:1, Dragon:1, Electric:1, Ghost:1, Flying:2, Psychic:2} },
+      { text: "Sometimes", weights: {} },
+      { text: "Rarely", weights: {Steel:2, Rock:2, Ground:1, Normal:1, Fighting:1, Bug:1, Fire:1} },
+      { text: "Never", weights: {Steel:4, Rock:3, Ground:3, Normal:2, Fighting:2, Bug:1, Fire:1, Grass:1} },
+    ]
+  },
 ];
-// --- Scoring: ceiling normalization, consistency weighting, multi-axis tie-break, per-Pokémon axis positions ---
+// --- Scoring: ceiling normalization, consistency weighting, empirically-calibrated per-type correction, multi-axis tie-break, per-Pokémon axis + hidden types ---
 // --- Type axis positions: [Intensity, Sociability, Structure, Directness, Orientation] ---
 // each axis roughly -2..2: calm<->fierce, solitary<->communal, freeform<->disciplined, subtle<->direct, traditional<->novel
 const TYPE_AXES = {
@@ -2001,12 +2505,27 @@ function scoreTypesDetailed(answers, TYPE_ORDER){
   return {raw, questionsHit};
 }
 
+// Per-type correction factor. Equal ceilings don't guarantee equal odds of ever being
+// assigned -- a type whose signal is spread thin across many answers is far likelier to
+// accumulate a moderate score by chance than one whose signal sits in a few high-weight,
+// low-probability answers, even with an identical ceiling. This factor corrects for that.
+// It was derived empirically, not analytically: simulate many thousands of uniform-random
+// answer sets, measure each type's actual average composite score, nudge its factor toward
+// equalizing that average, and repeat until the correction stops improving. Recompute this
+// the same way if the question set changes meaningfully.
+const TYPE_CALIBRATION = {
+  Fire: 0.9355, Water: 1.0130, Grass: 1.0645, Electric: 1.0216, Ice: 0.9675,
+  Fighting: 1.0274, Poison: 1.0165, Ground: 0.9621, Flying: 0.9658, Psychic: 0.9883,
+  Bug: 0.9999, Rock: 1.0696, Ghost: 1.0185, Dragon: 0.9904, Dark: 0.9511,
+  Steel: 0.9919, Fairy: 1.0021, Normal: 1.0422,
+};
 function compositeScores(raw, questionsHit, ceiling, opportunity, TYPE_ORDER){
   const composite = {};
   TYPE_ORDER.forEach(t => {
     const norm = ceiling[t] > 0 ? raw[t]/ceiling[t] : 0;
     const breadth = opportunity[t] > 0 ? questionsHit[t].size/opportunity[t] : 0;
-    composite[t] = norm * (0.65 + 0.35*breadth);
+    const calibrated = norm * (TYPE_CALIBRATION[t] || 1);
+    composite[t] = calibrated * (0.65 + 0.35*breadth);
   });
   return composite;
 }
@@ -2070,6 +2589,26 @@ function pokemonAxisVector(mon){
     if (delta) for (let i=0;i<5;i++) nudge[i]+=delta[i];
   });
   return base.map((v,i) => Math.max(-2.5, Math.min(2.5, v + nudge[i])));
+}
+
+// A given Pokémon's "hidden types" -- the 1-2 types (other than its own official ones)
+// whose personality-axis position is closest to its own derived vector. This gives every
+// Pokémon a secondary personality resonance beyond its literal game typing (e.g. a pure
+// Water Pokémon whose trait reads as territorial and blunt might resonate with Dark), the
+// same idea a hand-curated "H Type" column captures -- but derived systematically from data
+// already in the pool rather than 482 individual judgment calls, so it's something we can
+// actually stand behind at this volume.
+const _hiddenTypeCache = new Map();
+function deriveHiddenTypes(mon, TYPE_ORDER){
+  if (_hiddenTypeCache.has(mon.name)) return _hiddenTypeCache.get(mon.name);
+  const ownVec = pokemonAxisVector(mon);
+  const candidates = TYPE_ORDER
+    .filter(t => !mon.types.includes(t))
+    .map(t => ({ type: t, d: axisDistance(ownVec, TYPE_AXES[t]) }))
+    .sort((a, b) => a.d - b.d);
+  const result = [candidates[0].type, candidates[1] ? candidates[1].type : candidates[0].type];
+  _hiddenTypeCache.set(mon.name, result);
+  return result;
 }
 
 
@@ -2172,20 +2711,45 @@ backBtn.addEventListener('click', () => {
 });
 
 // --- Avatar & match selection ---
-// Each placement's specific Pokémon is chosen by axis-closeness to the person's own
-// personality vector, not just a blind seeded index: within that type's pool, we rank
-// every not-yet-used candidate by how close its own axis position (type-average, nudged
-// by its trait keywords) is to the person's, then seed-pick from the closest slice. This
-// keeps genuine variety between people who land on similar overall types -- rather than
-// converging on one "best match" Pokémon for everyone -- while still meaningfully favoring
-// candidates whose flavor actually fits how the person answered.
+// Each placement's specific Pokémon is chosen by closeness to the person's own personality
+// profile, not just a blind seeded index. The "closeness" score for a candidate combines:
+//  - axis distance: its own personality-axis position (type-average, nudged by trait
+//    keywords) vs. the person's own -- the core signal.
+//  - a combo bonus: if the candidate's real dual-typing exactly mirrors two of the person's
+//    own top-4 types, it's rewarded for that alignment actually existing in the Pokédex,
+//    not just in our derived math.
+//  - a hidden-type bonus: if one of the candidate's two derived "hidden types" (its closest
+//    personality neighbors, beyond its literal game type) is also among the person's other
+//    top-4 types, that's a second, independent signal the fit runs deeper than one axis read.
+// Within that ranking, we still take the closest quarter as a shortlist and seed-pick from
+// it, rather than always taking the single best match -- preserving real variety between
+// people with similar overall profiles instead of converging everyone onto one "best"
+// Pokémon per type.
+const HIDDEN_TYPE_BONUS = 0.3;
+// Graded like the reference quiz's combo bonus: a pairing involving your very top-ranked
+// types is a stronger signal than one further down. Keyed by the sum of the two placements'
+// rank indices (0=Primary..3=Quaternary), lowest sum = most elite pairing = biggest bonus.
+const COMBO_BONUS_BY_RANK_SUM = {1: 0.9, 2: 0.75, 3: 0.6, 4: 0.5, 5: 0.4};
 function pickAvatars(rankedTop4, compositeMap, personAxisVec, nSeed, aSeed, usedKeys){
+  const top4Set = new Set(rankedTop4);
+  const rankOf = new Map(rankedTop4.map((t, idx) => [t, idx]));
   return rankedTop4.map((type, i) => {
     const pool = TYPE_POOLS[type];
     const available = pool.filter(m => !usedKeys.has(m.dex + ':' + m.name));
     const candidates = available.length ? available : pool;
     const ranked = candidates
-      .map(m => ({ mon: m, d: axisDistance(personAxisVec, pokemonAxisVector(m)) }))
+      .map(m => {
+        let d = axisDistance(personAxisVec, pokemonAxisVector(m));
+        if (m.types.length === 2 && top4Set.has(m.types[0]) && top4Set.has(m.types[1])){
+          const rankSum = rankOf.get(m.types[0]) + rankOf.get(m.types[1]);
+          d -= (COMBO_BONUS_BY_RANK_SUM[rankSum] || 0.4);
+        }
+        const hidden = deriveHiddenTypes(m, TYPE_ORDER);
+        if (hidden.some(h => top4Set.has(h) && h !== type)){
+          d -= HIDDEN_TYPE_BONUS;
+        }
+        return { mon: m, d };
+      })
       .sort((a, b) => a.d - b.d);
     const shortlistSize = Math.max(3, Math.round(ranked.length * 0.25));
     const shortlist = ranked.slice(0, shortlistSize).map(r => r.mon);
@@ -2363,6 +2927,18 @@ function renderResults(result){
     blurbP.className = 'avatar-blurb-text';
     blurbP.textContent = avatarBlurb(a.mon, a.type);
     card.appendChild(blurbP);
+
+    const hexacoText = HEXACO_TYPE_BLURBS[a.type];
+    if (hexacoText){
+      const hexacoP = document.createElement('p');
+      hexacoP.className = 'avatar-hexaco-text';
+      const hexacoLabel = document.createElement('span');
+      hexacoLabel.className = 'hexaco-label';
+      hexacoLabel.textContent = 'Personality profile:';
+      hexacoP.appendChild(hexacoLabel);
+      hexacoP.appendChild(document.createTextNode(hexacoText));
+      card.appendChild(hexacoP);
+    }
 
     avatarGrid.appendChild(card);
     return card;
