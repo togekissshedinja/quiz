@@ -278,10 +278,16 @@
   .avatar-img-wrap img{width:100%; height:100%; object-fit:contain;}
   .avatar-mon-name{font-weight:600; font-size:1.02rem; margin-bottom:2px;}
   .avatar-blurb-text{
-    color:var(--text-muted);
+    color:var(--text);
     font-size:0.86rem;
     line-height:1.55;
     margin:0;
+  }
+  .avatar-type-text{
+    color:var(--text-muted);
+    font-size:0.86rem;
+    line-height:1.55;
+    margin:10px 0 0;
   }
   .avatar-connection-text{
     color:var(--text);
@@ -1499,7 +1505,6 @@ function imgFallbackOnError(avatar, finalJs){
   return `this.onerror=function(){${finalJs}};this.src='${altUrl}';`;
 }
 
-// --- Per-avatar and per-type reading text, plus optional live PokeAPI species enrichment ---
 const AVATAR_BLURB_TEMPLATES = [
   (a) => `${a.name} is the specific Pokémon standing in for this placement — a ${a.types.join('/')}-type known for being ${a.trait}.`,
   (a) => `This placement lands on ${a.name}: ${a.types.join('/')}-type, ${a.trait}.`,
@@ -1513,36 +1518,72 @@ const AVATAR_BLURB_TEMPLATES = [
 // per-avatar trait sentence above so each card gets real type-level personality writing
 // on top of the specific trait, rather than the trait alone padded into a longer template.
 const TYPE_PERSONALITY = {
-  Fire: "Fire-types run on an inner heat that never fully banks — for some it flares the second something's in the way, for others it just keeps the pilot light burning until it's needed. Either way, there's no faking the warmth; it's real, and it's rarely subtle. People tend to read that heat before they read anything else about a Fire-type, which is usually an accurate first impression, even if it isn't the whole one.",
-  Water: "Water-types hold more than they show on the surface — calm on top, working something out underneath, or the other way around entirely. What looks still is usually just patient; what looks like retreat is usually regrouping. Pressure doesn't break a Water-type so much as reroute them, and the shape they take afterward is rarely the one anyone expected going in.",
-  Grass: "Grass-types grow on their own schedule and don't thank anyone for rushing them — the payoff is real, it just isn't fast. Underestimate the quiet ones at your own risk; roots go deeper than anyone above ground can see. Given enough time and not much else, a Grass-type will outlast almost anything that tried to outpace them.",
-  Electric: "Electric-types are wired for motion — thoughts, moods, plans, all of it arrives fast and rarely waits its turn. The charge has to go somewhere; better it finds a project than a person. Left with nothing to run through, that current doesn't just disappear — it finds the nearest outlet, which is usually whatever's closest, not whatever's best.",
-  Psychic: "Psychic-types think in layers most people don't bother opening — three explanations deep before anyone else has settled on one. It looks like distraction from outside; from inside it's just how the room actually reads. The hard part isn't having the thought, it's deciding which of the six versions is actually worth saying out loud.",
-  Ice: "Ice-types keep a composed surface over something that runs colder or deeper than they let on — not cold as in unfeeling, cold as in undisturbed. When that surface finally cracks, it's rarely a small thing. Most people never see it happen, because an Ice-type would rather absorb the pressure alone than let anyone watch the surface go.",
-  Fighting: "Fighting-types measure themselves against something — a rival, a standard, a version of themselves from last year — and rarely stop moving toward it. Rest reads like falling behind, even when nobody's actually keeping score but them. The discipline is real and mostly self-imposed, which makes it both their greatest asset and the hardest thing to ever talk them out of.",
-  Poison: "Poison-types are more careful than their reputation suggests — the sting is a last resort, not an opening move, and it's usually earned. What reads as menace from a distance is often just a very firm boundary. Cross it once by accident and you'll likely be forgiven; cross it twice on purpose and you'll understand exactly why the reputation exists.",
-  Ground: "Ground-types don't need to be first, just steady — built for the long stretch rather than the sprint, and unbothered by how long the long stretch takes. Move one and you'll find out how much was actually holding still on purpose. That steadiness isn't a lack of ambition, it's a different theory of how ambition actually pays off.",
-  Flying: "Flying-types keep one foot toward the exit at all times — not from fear, usually, just a low tolerance for feeling boxed in. Give them room and they're generous; corner them and they're gone. The freedom isn't restlessness for its own sake, it's a genuine requirement — the people who understand that tend to get far more loyalty back than the ones who try to fence it in.",
-  Rock: "Rock-types absorb far more than they let show, and take their time deciding what, if anything, gets a reaction. What looks unmoved has usually just already decided this particular thing isn't worth moving for. When something finally does register, it registers permanently — a Rock-type's opinion of you, once formed, is not easily revised.",
-  Bug: "Bug-types are built for turnover — quick to adapt, quick to outgrow whatever stage came before, rarely sentimental about it. The version of them from a year ago and the version now are doing two different jobs entirely. What looks like restlessness is really just a refusal to stay in a shape that's already stopped fitting.",
-  Ghost: "Ghost-types keep something back — a real feeling, an old grudge, a version of themselves that only shows up once trust is actually earned. What looks playful on the surface is usually testing whether it's safe to be serious. Get past the testing phase and what's underneath tends to be more sincere, and more attached, than the Ghost-type would ever openly admit.",
-  Dragon: "Dragon-types were never built to stay small, and eventually that stops being negotiable — big presence, big plans, low patience for anything that asks them to shrink. The confidence isn't performance; it's just accurate. The only real risk is a Dragon-type mistaking scale for a plan, when it's usually just the ambition talking.",
-  Dark: "Dark-types trust selectively and completely — a short list, guarded fiercely, and everyone else kept at a careful distance until proven otherwise. It reads as coldness from outside the circle; from inside it, it's the opposite. Getting onto that short list takes a while, and getting removed from it takes almost nothing — which is exactly how a Dark-type prefers it.",
-  Steel: "Steel-types are built, not born — whatever softness came first got reshaped into something that holds up under pressure. The guard isn't paranoia, it's maintenance, and it's usually justified by something that happened once. What looks unbreakable from outside took real work to become that way, and a Steel-type rarely gets credit for the version of themselves that existed before the reinforcement.",
-  Fairy: "Fairy-types run on feeling and are more perceptive about a room than they let on — soft exterior, sharper read than anyone expects. Charm is real, but it's not the whole story, just the part offered first. Underneath the warmth is usually a very clear sense of exactly who's earned it and who's still auditioning.",
-  Normal: "Normal-types resist being reduced to one trait, one mood, one easy label — flexible almost to a fault, adapting to whatever the moment actually needs. Underestimating them is the single most common mistake anyone makes. The lack of one defining edge isn't a gap, it's the actual point — a Normal-type's range is the trait, even when nobody else notices it as one.",
+  Fire: "Fire types run on an inner heat that never fully banks — for some it flares the second something's in the way, for others it just keeps the pilot light burning until it's needed. Either way, there's no faking the warmth; it's real, and it's rarely subtle. People tend to read that heat before they read anything else about a Fire-type, which is usually an accurate first impression, even if it isn't the whole one.",
+  Water: "Water types hold more than they show on the surface — calm on top, working something out underneath, or the other way around entirely. What looks still is usually just patient; what looks like retreat is usually regrouping. Pressure doesn't break a Water-type so much as reroute them, and the shape they take afterward is rarely the one anyone expected going in.",
+  Grass: "Grass types grow on their own schedule and don't thank anyone for rushing them — the payoff is real, it just isn't fast. Underestimate the quiet ones at your own risk; roots go deeper than anyone above ground can see. Given enough time and not much else, a Grass-type will outlast almost anything that tried to outpace them.",
+  Electric: "Electric types are wired for motion — thoughts, moods, plans, all of it arrives fast and rarely waits its turn. The charge has to go somewhere; better it finds a project than a person. Left with nothing to run through, that current doesn't just disappear — it finds the nearest outlet, which is usually whatever's closest, not whatever's best.",
+  Psychic: "Psychic types think in layers most people don't bother opening — three explanations deep before anyone else has settled on one. It looks like distraction from outside; from inside it's just how the room actually reads. The hard part isn't having the thought, it's deciding which of the six versions is actually worth saying out loud.",
+  Ice: "Ice types keep a composed surface over something that runs colder or deeper than they let on — not cold as in unfeeling, cold as in undisturbed. When that surface finally cracks, it's rarely a small thing. Most people never see it happen, because an Ice-type would rather absorb the pressure alone than let anyone watch the surface go.",
+  Fighting: "Fighting types measure themselves against something — a rival, a standard, a version of themselves from last year — and rarely stop moving toward it. Rest reads like falling behind, even when nobody's actually keeping score but them. The discipline is real and mostly self-imposed, which makes it both their greatest asset and the hardest thing to ever talk them out of.",
+  Poison: "Poison types are more careful than their reputation suggests — the sting is a last resort, not an opening move, and it's usually earned. What reads as menace from a distance is often just a very firm boundary. Cross it once by accident and you'll likely be forgiven; cross it twice on purpose and you'll understand exactly why the reputation exists.",
+  Ground: "Ground types don't need to be first, just steady — built for the long stretch rather than the sprint, and unbothered by how long the long stretch takes. Move one and you'll find out how much was actually holding still on purpose. That steadiness isn't a lack of ambition, it's a different theory of how ambition actually pays off.",
+  Flying: "Flying types keep one foot toward the exit at all times — not from fear, usually, just a low tolerance for feeling boxed in. Give them room and they're generous; corner them and they're gone. The freedom isn't restlessness for its own sake, it's a genuine requirement — the people who understand that tend to get far more loyalty back than the ones who try to fence it in.",
+  Rock: "Rock types absorb far more than they let show, and take their time deciding what, if anything, gets a reaction. What looks unmoved has usually just already decided this particular thing isn't worth moving for. When something finally does register, it registers permanently — a Rock-type's opinion of you, once formed, is not easily revised.",
+  Bug: "Bug types are built for turnover — quick to adapt, quick to outgrow whatever stage came before, rarely sentimental about it. The version of them from a year ago and the version now are doing two different jobs entirely. What looks like restlessness is really just a refusal to stay in a shape that's already stopped fitting.",
+  Ghost: "Ghost types keep something back — a real feeling, an old grudge, a version of themselves that only shows up once trust is actually earned. What looks playful on the surface is usually testing whether it's safe to be serious. Get past the testing phase and what's underneath tends to be more sincere, and more attached, than the Ghost-type would ever openly admit.",
+  Dragon: "Dragon types were never built to stay small, and eventually that stops being negotiable — big presence, big plans, low patience for anything that asks them to shrink. The confidence isn't performance; it's just accurate. The only real risk is a Dragon-type mistaking scale for a plan, when it's usually just the ambition talking.",
+  Dark: "Dark types trust selectively and completely — a short list, guarded fiercely, and everyone else kept at a careful distance until proven otherwise. It reads as coldness from outside the circle; from inside it, it's the opposite. Getting onto that short list takes a while, and getting removed from it takes almost nothing — which is exactly how a Dark-type prefers it.",
+  Steel: "Steel types are built, not born — whatever softness came first got reshaped into something that holds up under pressure. The guard isn't paranoia, it's maintenance, and it's usually justified by something that happened once. What looks unbreakable from outside took real work to become that way, and a Steel-type rarely gets credit for the version of themselves that existed before the reinforcement.",
+  Fairy: "Fairy types run on feeling and are more perceptive about a room than they let on — soft exterior, sharper read than anyone expects. Charm is real, but it's not the whole story, just the part offered first. Underneath the warmth is usually a very clear sense of exactly who's earned it and who's still auditioning.",
+  Normal: "Normal types resist being reduced to one trait, one mood, one easy label — flexible almost to a fault, adapting to whatever the moment actually needs. Underestimating them is the single most common mistake anyone makes. The lack of one defining edge isn't a gap, it's the actual point — a Normal-type's range is the trait, even when nobody else notices it as one.",
 };
 
 // Adapted from the astrology app's avatarBlurb(avatar, sign): here each placement carries
 // a single assigned type directly (Primary/Secondary/Tertiary/Quaternary) rather than a
 // zodiac sign object, so we prefer that type's paragraph when the avatar is dual-typed --
 // e.g. a Water/Ice Pokémon picked for the Ice placement gets the Ice paragraph, not Water.
-function avatarBlurb(avatar, assignedType){
+function relevantTypeFor(avatar, assignedType){
+  return avatar.types.includes(assignedType) ? assignedType : avatar.types[0];
+}
+function typePersonalityText(avatar, assignedType){
+  return TYPE_PERSONALITY[relevantTypeFor(avatar, assignedType)] || '';
+}
+
+// A few phrasings for surfacing a Pokémon's derived "hidden type" (its closest personality
+// neighbor beyond its literal game typing -- see deriveHiddenTypes) as a second, always-
+// available sentence about the specific Pokémon, not the type.
+const HIDDEN_TYPE_TEMPLATES = [
+  (name, hType) => `There's also a real ${hType} undercurrent in how ${name} is built, even though it isn't part of the official typing.`,
+  (name, hType) => `Look past the label and ${name} reads a little ${hType} too — that part just never made it onto the card.`,
+  (name, hType) => `${name} carries a quieter ${hType} streak underneath everything else about it.`,
+  (name, hType) => `Unofficially, there's a strand of ${hType} running through ${name} as well.`,
+];
+function hiddenTypeRevealSentence(mon, TYPE_ORDER){
+  const hidden = deriveHiddenTypes(mon, TYPE_ORDER);
+  const template = HIDDEN_TYPE_TEMPLATES[(mon.dex + 3) % HIDDEN_TYPE_TEMPLATES.length];
+  return template(mon.name, hidden[0]);
+}
+
+// When the trait phrase has a second clause ("cheerful, hits harder than expected"), give
+// it its own sentence rather than leaving it folded into the opening line -- most of the
+// pool's trait phrases are written this way, but not all, so this is a bonus, not the
+// guarantee (the hidden-type sentence above covers every entry regardless).
+function traitSecondClauseSentence(mon){
+  const parts = mon.trait.split(',').map(s => s.trim()).filter(Boolean);
+  if (parts.length < 2) return null;
+  return `The "${parts[1]}" side of it doesn't always show first, but it's there when it matters.`;
+}
+
+// Guaranteed at least two sentences about the specific Pokémon (not the type): the
+// templated opening plus the hidden-type reveal, every time, regardless of how the trait
+// phrase happens to be written; a third sentence when the trait splits into two clauses.
+function pokemonSpecificText(avatar, TYPE_ORDER){
   const template = AVATAR_BLURB_TEMPLATES[avatar.dex % AVATAR_BLURB_TEMPLATES.length];
-  const opening = template(avatar);
-  const relevantType = avatar.types.includes(assignedType) ? assignedType : avatar.types[0];
-  const typeFlavor = TYPE_PERSONALITY[relevantType] || '';
-  return typeFlavor ? `${opening} ${typeFlavor}` : opening;
+  const sentences = [template(avatar)];
+  const second = traitSecondClauseSentence(avatar);
+  if (second) sentences.push(second);
+  sentences.push(hiddenTypeRevealSentence(avatar, TYPE_ORDER));
+  return sentences.join(' ');
 }
 
 // A genuine, computed connection between the person's own answers and this specific
@@ -3016,8 +3057,13 @@ function renderResults(result){
 
     const blurbP = document.createElement('p');
     blurbP.className = 'avatar-blurb-text';
-    blurbP.textContent = avatarBlurb(a.mon, a.type);
+    blurbP.textContent = pokemonSpecificText(a.mon, TYPE_ORDER);
     card.appendChild(blurbP);
+
+    const typeP = document.createElement('p');
+    typeP.className = 'avatar-type-text';
+    typeP.textContent = typePersonalityText(a.mon, a.type);
+    card.appendChild(typeP);
 
     const connectionP = document.createElement('p');
     connectionP.className = 'avatar-connection-text';
