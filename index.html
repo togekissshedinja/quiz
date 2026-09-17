@@ -283,6 +283,13 @@
     line-height:1.55;
     margin:0;
   }
+  .avatar-connection-text{
+    color:var(--text);
+    font-size:0.86rem;
+    line-height:1.55;
+    margin:10px 0 0;
+    font-weight:500;
+  }
   .avatar-official-text{
     color:var(--text);
     font-size:0.85rem;
@@ -1492,6 +1499,7 @@ function imgFallbackOnError(avatar, finalJs){
   return `this.onerror=function(){${finalJs}};this.src='${altUrl}';`;
 }
 
+// --- Per-avatar and per-type reading text, plus optional live PokeAPI species enrichment ---
 const AVATAR_BLURB_TEMPLATES = [
   (a) => `${a.name} is the specific Pokémon standing in for this placement — a ${a.types.join('/')}-type known for being ${a.trait}.`,
   (a) => `This placement lands on ${a.name}: ${a.types.join('/')}-type, ${a.trait}.`,
@@ -1537,6 +1545,36 @@ function avatarBlurb(avatar, assignedType){
   return typeFlavor ? `${opening} ${typeFlavor}` : opening;
 }
 
+// A genuine, computed connection between the person's own answers and this specific
+// Pokémon -- not the type in general. Both the person and every Pokémon already have a
+// position in the same 5-axis personality space (used elsewhere for matching); this finds
+// the axes where the two are both clearly leaning the same direction and names them, so the
+// "why this one" reads as a real comparison rather than another restatement of the type.
+// Thresholds were calibrated empirically, not guessed: averaging over 77 questions
+// compresses even a deliberately extreme, single-axis persona down to roughly 0.65-0.85 at
+// most (measured directly), so a naive 0.6-on-both-sides bar -- reasonable back when the
+// quiz was 31 questions -- had quietly become almost unreachable. Tested several threshold
+// pairs against a realistic mix of decisive and less-decisive simulated answerers and picked
+// one that keeps this the majority, informative case rather than a rare one.
+function personalConnectionSentence(personAxisVec, mon){
+  const monVec = pokemonAxisVector(mon);
+  const PERSON_THRESHOLD = 0.4;
+  const MON_THRESHOLD = 0.5;
+  const matches = [];
+  for (let i = 0; i < 5; i++){
+    const bothMeaningful = Math.abs(personAxisVec[i]) >= PERSON_THRESHOLD && Math.abs(monVec[i]) >= MON_THRESHOLD;
+    const sameSide = (personAxisVec[i] > 0) === (monVec[i] > 0);
+    if (bothMeaningful && sameSide){
+      matches.push(personAxisVec[i] > 0 ? AXIS_LABELS[i][1] : AXIS_LABELS[i][0]);
+    }
+  }
+  if (matches.length === 0){
+    return `${mon.name} isn't a match on any single trait so much as the overall shape of how you answered -- it's the closest fit once everything is weighed together.`;
+  }
+  const joined = matches.length === 1 ? matches[0] : matches.slice(0, -1).join(', ') + ' and ' + matches[matches.length - 1];
+  return `More specifically: your own answers leaned ${joined}, the same combination that shapes ${mon.name} here.`;
+}
+
 // --- Optional live enhancement: official Pokédex flavor text from PokeAPI (pokeapi.co) ---
 // This is a progressive enhancement only -- the writing above is already a complete result
 // on its own. A name only qualifies for the lookup if it's a single plain alphabetic word:
@@ -1548,7 +1586,7 @@ function isSimplePokeApiName(name){
   return /^[A-Za-z]+$/.test(name);
 }
 const POKEAPI_TIMEOUT_MS = 5000;
-async function fetchOfficialFlavorText(mon){
+async function fetchOfficialSpeciesInfo(mon){
   if (mon.slug) return null;
   if (!isSimplePokeApiName(mon.name)) return null;
   const slug = mon.name.toLowerCase();
@@ -1560,11 +1598,26 @@ async function fetchOfficialFlavorText(mon){
     clearTimeout(timeoutId);
     if (!res.ok) return null;
     const data = await res.json();
-    const entries = (data.flavor_text_entries || []).filter(e => e.language && e.language.name === 'en');
-    if (!entries.length) return null;
-    const raw = entries[0].flavor_text || '';
-    const cleaned = raw.replace(/\f/g, ' ').replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
-    return cleaned || null;
+
+    const flavorEntries = (data.flavor_text_entries || []).filter(e => e.language && e.language.name === 'en');
+    const rawFlavor = flavorEntries.length ? (flavorEntries[0].flavor_text || '') : '';
+    const flavorText = rawFlavor.replace(/\f/g, ' ').replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+
+    const genusEntries = (data.genera || []).filter(g => g.language && g.language.name === 'en');
+    const genus = genusEntries.length ? genusEntries[0].genus : null;
+
+    let generationLabel = null;
+    if (data.generation && data.generation.name){
+      const roman = data.generation.name.split('-')[1];
+      if (roman) generationLabel = 'Generation ' + roman.toUpperCase();
+    }
+
+    const color = (data.color && data.color.name) ? data.color.name : null;
+    const habitat = (data.habitat && data.habitat.name) ? data.habitat.name.replace(/-/g, ' ') : null;
+    const evolvesFrom = (data.evolves_from_species && data.evolves_from_species.name) || null;
+
+    if (!flavorText && !genus) return null;
+    return { flavorText: flavorText || null, genus, generationLabel, color, habitat, evolvesFrom };
   } catch (err){
     if (timeoutId) clearTimeout(timeoutId);
     return null;
@@ -1574,24 +1627,24 @@ async function fetchOfficialFlavorText(mon){
 // --- Joan's own HEXACO-based type descriptions, added as an additional reading alongside
 // the existing type-personality writing (not a replacement) ---
 const HEXACO_TYPE_BLURBS = {
-  Water: "Waters are best described as empaths. They are deeply emotionally sensitive, and good at listening to and validating others' struggles. Waters strongly value their relationships, put great effort into making their loved ones feel special, and often openly express their affection. Because Waters are so emotionally sensitive, they may take things personally even when they are not meant to be, and can be prone to anxiety and depression.",
-  Dark: "Darks are very creative and able to come up with clever solutions to problems. Usually, Darks are most efficient working alone, rather than with teammates. They tend to be people-smart, able to see through tricks and protect themselves from being taken advantage of. Darks may appear distrustful and withdrawn, but they have a tender emotional core and want to have a strong bond with someone who understands them.",
-  Fire: "Fires are passionate about advocating for the disadvantaged and fighting for causes that they believe in. They can often persude others through their charisma, and their passion for their beliefs is contagious. Also, Fires tend to make great leaders, as they can inspire others to strive for a higher vision. However, they may need to be careful not to be overly loud or offensive in the way they communicate with others.",
-  Dragon: "Dragons are the natural leaders of the world. They often have strong personal ambitions and a grand vision for society's future. Most Dragons are able to take charge, give clear directions, and lead groups in unity. Also, Dragons tend to keep calm in emergencies and work well under pressure. However, Dragons may be overly perfectionistic, and can be impatient with others who do not fulfill their high standards.",
-  Ghost: "Ghosts are the quiet observers of the world. They tend to be highly interested in philosophy, spirituality, and artistic pursuits. They enjoy watching and listening more than speaking, and often meditate deeply about ideas that interest them. Because Ghosts have a unique way of thinking, they can be fascinating to speak with, though they tend to be highly introverted, and may struggle with social anxiety.",
-  Steel: "Steels are highly studious and diligent, and often excel in scientific areas. They are usually willing to help others complete important tasks, even if they're tired or busy. Most Steels are very consistent and trustworthy, and keep the commitments they make. Though Steels are highly intelligent, it can be difficult for them to consider new points of view or change their minds from what they believe to be the truth.",
-  Psychic: "Psychics are, simply put, geniuses. They can analyze, synthesize, and memorize information quickly, and often combine many different areas of study to make unique insights or innovations. Most Psychics enjoy reading a variety of books, visiting faraway places, and learning all they can about many different topics and ideas. However, Psychics may not be as emotionally sensitive or empathetic towards others.",
-  Electric: "Electrics live life at high speed. They are highly energetic, efficient multitaskers, and can learn new skills quickly. Electrics have a strong sense of humor, compliment and encourage others often, and can spread joy wherever they go. Electrics also enjoy improvising and experimenting with new ideas. However, because Electrics are so fast-paced, they can get easily distracted and struggle to focus on one thing at a time.",
-  Ice: "Ices hold themselves to very high standards, and often appear sophisticated and refined. They hold ambitious goals, and will work diligently to cultivate their talents. Ices also value beauty, and can often recognize small beautiful details in things where others may not notice. While Ices are often charismatic and skilled speakers, they can be overly concerned with their public image, and afraid to be true to themselves.",
-  Ground: "Grounds are often perceived as mature for their age, because they tend to take on a parental role. They are often very patient, which makes them excellent teachers or coaches. Grounds can diffuse tense situations by looking at things objectively and finding common ground with others. Because Grounds present themselves as confident and capable, they may feel uncomfortable seeking help, even when they need it.",
-  Grass: "Grasses are generally calm and gentle in demeanor. They often make excellent teachers or therapists, as they nurture and encourage those they speak to. Also, Grasses are usually in tune with nature, invested in protecting the environment, and enjoy the beauty of animals and plants around them. Many Grasses tend to be more spiritually and artistically minded, and may struggle with rigorous academics or athletics.",
-  Flying: "Fliers enjoy traveling to faraway places and learning about many different cultures. They often enjoy a good challenge, whether it is intense exercise or learning a complex skill, and tend to be fast learners. They make excellent storytellers and teachers, and their enthusiasm for learning is contagious. Because they love exploring so much, Fliers may struggle to settle down in one place or commit to long-term decisions.",
-  Fighting: "Fighters work tirelessly to accomplish even the most ambitious goals. They are highly disciplined and keep their commitments. Also, Fighters care deeply about close friends and family, and will protect them at all costs. Usually, Fighters will enthusiastically follow authority figures, but only if their respect is earned first. Though they are fiercely loyal to those that they love, they may feel threatened and get angry easily.",
-  Fairy: "Fairies are cheerful, playful, and able to cheer people up even in grim situations. They are often interested in fantasy, sci-fi, and supernatural ideas, and enjoy the visual and performing arts. Also, Fairies tend to be open-minded and enjoy getting to know people from all walks of life. Though they are fun and exciting to be around, they may get easily overwhelmed by decision-making or goal-setting.",
-  Poison: "Poisons are, essentially, adrenaline junkies! They thrive off of challenging themselves beyond what anyone thought possible, adventuring to exciting places, and strengthening their skills to high levels. Poisons tend to be highly charismatic and entertaining, and enjoy spending time with large groups of friends. However, because Poisons have a rebellious streak, they may risk endangering themselves or others.",
-  Bug: "Bugs care strongly about working with other people to benefit the community. They are much more selfless than selfish. They usually value having a strong group identity and have high respect for authority figures. Also, Bugs are good at completing tasks efficiently and following the established rules. Although Bug-types are great at working with teammates, they may struggle to open up emotionally with people close to them.",
-  Rock: "Rocks are keenly aware of the sacrifices made for the privileges they have, and they take time often to acknowledge those sacrifices. Tradition, history, and family are of highest importance to Rocks. They tend to be strong and good at working with their hands, and they work hard so their families can have good lives. However, Rocks tend to be stubborn, and struggle to adapt to changes in their lives or in society.",
-  Normal: "Normals are warm and kind to others, regardless of whether that kindness is reciprocated. They are often content with a simple life without many luxuries, and express gratitude frequently for the blessings they have. Normals prefer to spend most of their time at home, and find joy in their families. Though they are very kind to all people, they may sometimes endanger themselves by being too trusting of others.",
+  Water: "Water types are best described as empaths. They are deeply emotionally sensitive, and good at listening to and validating others' struggles. Water types strongly value their relationships, put great effort into making their loved ones feel special, and often openly express their affection. Because Water types are so emotionally sensitive, they may take things personally even when they are not meant to be, and can be prone to anxiety and depression.",
+  Dark: "Dark types are very creative and able to come up with clever solutions to problems. Usually, Dark types are most efficient working alone, rather than with teammates. They tend to be people-smart, able to see through tricks and protect themselves from being taken advantage of. Dark types may appear distrustful and withdrawn, but they have a tender emotional core and want to have a strong bond with someone who understands them.",
+  Fire: "Fire types are passionate about advocating for the disadvantaged and fighting for causes that they believe in. They can often persude others through their charisma, and their passion for their beliefs is contagious. Also, Fire types tend to make great leaders, as they can inspire others to strive for a higher vision. However, they may need to be careful not to be overly loud or offensive in the way they communicate with others.",
+  Dragon: "Dragon types are the natural leaders of the world. They often have strong personal ambitions and a grand vision for society's future. Most Dragon types are able to take charge, give clear directions, and lead groups in unity. Also, Dragon types tend to keep calm in emergencies and work well under pressure. However, Dragon types may be overly perfectionistic, and can be impatient with others who do not fulfill their high standards.",
+  Ghost: "Ghost types are the quiet observers of the world. They tend to be highly interested in philosophy, spirituality, and artistic pursuits. They enjoy watching and listening more than speaking, and often meditate deeply about ideas that interest them. Because Ghost types have a unique way of thinking, they can be fascinating to speak with, though they tend to be highly introverted, and may struggle with social anxiety.",
+  Steel: "Steel types are highly studious and diligent, and often excel in scientific areas. They are usually willing to help others complete important tasks, even if they're tired or busy. Most Steel types are very consistent and trustworthy, and keep the commitments they make. Though Steel types are highly intelligent, it can be difficult for them to consider new points of view or change their minds from what they believe to be the truth.",
+  Psychic: "Psychic types are, simply put, geniuses. They can analyze, synthesize, and memorize information quickly, and often combine many different areas of study to make unique insights or innovations. Most Psychic types enjoy reading a variety of books, visiting faraway places, and learning all they can about many different topics and ideas. However, Psychic types may not be as emotionally sensitive or empathetic towards others.",
+  Electric: "Electric types live life at high speed. They are highly energetic, efficient multitaskers, and can learn new skills quickly. Electric types have a strong sense of humor, compliment and encourage others often, and can spread joy wherever they go. Electric types also enjoy improvising and experimenting with new ideas. However, because Electric types are so fast-paced, they can get easily distracted and struggle to focus on one thing at a time.",
+  Ice: "Ice types hold themselves to very high standards, and often appear sophisticated and refined. They hold ambitious goals, and will work diligently to cultivate their talents. Ice types also value beauty, and can often recognize small beautiful details in things where others may not notice. While Ice types are often charismatic and skilled speakers, they can be overly concerned with their public image, and afraid to be true to themselves.",
+  Ground: "Ground types are often perceived as mature for their age, because they tend to take on a parental role. They are often very patient, which makes them excellent teachers or coaches. Ground types can diffuse tense situations by looking at things objectively and finding common ground with others. Because Ground types present themselves as confident and capable, they may feel uncomfortable seeking help, even when they need it.",
+  Grass: "Grass types are generally calm and gentle in demeanor. They often make excellent teachers or therapists, as they nurture and encourage those they speak to. Also, Grass types are usually in tune with nature, invested in protecting the environment, and enjoy the beauty of animals and plants around them. Many Grass types tend to be more spiritually and artistically minded, and may struggle with rigorous academics or athletics.",
+  Flying: "Flying types enjoy traveling to faraway places and learning about many different cultures. They often enjoy a good challenge, whether it is intense exercise or learning a complex skill, and tend to be fast learners. They make excellent storytellers and teachers, and their enthusiasm for learning is contagious. Because they love exploring so much, Flying types may struggle to settle down in one place or commit to long-term decisions.",
+  Fighting: "Fighting types work tirelessly to accomplish even the most ambitious goals. They are highly disciplined and keep their commitments. Also, Fighting types care deeply about close friends and family, and will protect them at all costs. Usually, Fighting types will enthusiastically follow authority figures, but only if their respect is earned first. Though they are fiercely loyal to those that they love, they may feel threatened and get angry easily.",
+  Fairy: "Fairy types are cheerful, playful, and able to cheer people up even in grim situations. They are often interested in fantasy, sci-fi, and supernatural ideas, and enjoy the visual and performing arts. Also, Fairy types tend to be open-minded and enjoy getting to know people from all walks of life. Though they are fun and exciting to be around, they may get easily overwhelmed by decision-making or goal-setting.",
+  Poison: "Poison types are, essentially, adrenaline junkies! They thrive off of challenging themselves beyond what anyone thought possible, adventuring to exciting places, and strengthening their skills to high levels. Poison types tend to be highly charismatic and entertaining, and enjoy spending time with large groups of friends. However, because Poison types have a rebellious streak, they may risk endangering themselves or others.",
+  Bug: "Bug types care strongly about working with other people to benefit the community. They are much more selfless than selfish. They usually value having a strong group identity and have high respect for authority figures. Also, Bug types are good at completing tasks efficiently and following the established rules. Although Bug types are great at working with teammates, they may struggle to open up emotionally with people close to them.",
+  Rock: "Rock types are keenly aware of the sacrifices made for the privileges they have, and they take time often to acknowledge those sacrifices. Tradition, history, and family are of highest importance to Rock types. They tend to be strong and good at working with their hands, and they work hard so their families can have good lives. However, Rock types tend to be stubborn, and struggle to adapt to changes in their lives or in society.",
+  Normal: "Normal types are warm and kind to others, regardless of whether that kindness is reciprocated. They are often content with a simple life without many luxuries, and express gratitude frequently for the blessings they have. Normal types prefer to spend most of their time at home, and find joy in their families. Though they are very kind to all people, they may sometimes endanger themselves by being too trusting of others.",
 };
 const QUESTIONS = [
   {
@@ -2451,7 +2504,6 @@ const QUESTIONS = [
     ]
   },
 ];
-// --- Scoring: ceiling normalization, consistency weighting, per-type z-score standardization, calibrated axis tie-break, per-Pokémon axis + hidden types ---
 // --- Type axis positions: [Intensity, Sociability, Structure, Directness, Orientation] ---
 // each axis roughly -2..2: calm<->fierce, solitary<->communal, freeform<->disciplined, subtle<->direct, traditional<->novel
 const TYPE_AXES = {
@@ -2870,31 +2922,44 @@ function computeAndShowResults(){
   const matches = pickMatches(weightedPool, usedKeys, nSeed + aSeed, 10);
   const blurb = buildProfileBlurb(axisVec);
 
-  lastResult = { top4, avatars, matches, primaryMon: avatars[0].mon, closeCalls, blurb };
+  lastResult = { top4, avatars, matches, primaryMon: avatars[0].mon, closeCalls, blurb, axisVec };
   renderResults(lastResult);
   applyResultTheme(lastResult.primaryMon);
   showScreen(resultsScreen);
   enhanceWithOfficialEntries(lastResult);
 }
 
-// --- Async, fail-safe: fetches official Pokédex text per avatar and appends it to the
+// --- Async, fail-safe: fetches official species info per avatar and appends it to the
 // already-rendered card if/when it arrives. Never blocks or replaces the base result --
 // if the fetch fails, is skipped (regional forms / punctuated names), or the person has
 // since restarted the quiz, this simply does nothing further.
 function enhanceWithOfficialEntries(resultRef){
   resultRef.avatars.forEach((a, i) => {
-    fetchOfficialFlavorText(a.mon).then(text => {
-      if (!text) return;
+    fetchOfficialSpeciesInfo(a.mon).then(info => {
+      if (!info) return;
       if (lastResult !== resultRef) return; // stale response from a since-abandoned run
       const card = resultRef.avatarCardElements && resultRef.avatarCardElements[i];
       if (!card) return;
+
       const p = document.createElement('p');
       p.className = 'avatar-official-text';
       const label = document.createElement('span');
       label.className = 'official-label';
       label.textContent = 'Official Pokédex entry: ';
       p.appendChild(label);
-      p.appendChild(document.createTextNode('"' + text + '"'));
+
+      const factParts = [];
+      if (info.genus) factParts.push(`Officially the ${info.genus}`);
+      if (info.generationLabel) factParts.push(`first appeared in ${info.generationLabel}`);
+      if (info.evolvesFrom) factParts.push(`evolves from ${info.evolvesFrom}`);
+      if (factParts.length){
+        const factLine = factParts.join(', ') + '.';
+        p.appendChild(document.createTextNode(factLine));
+        if (info.flavorText) p.appendChild(document.createElement('br'));
+      }
+      if (info.flavorText){
+        p.appendChild(document.createTextNode('"' + info.flavorText + '"'));
+      }
       card.appendChild(p);
     }).catch(() => {});
   });
@@ -2953,6 +3018,11 @@ function renderResults(result){
     blurbP.className = 'avatar-blurb-text';
     blurbP.textContent = avatarBlurb(a.mon, a.type);
     card.appendChild(blurbP);
+
+    const connectionP = document.createElement('p');
+    connectionP.className = 'avatar-connection-text';
+    connectionP.textContent = personalConnectionSentence(result.axisVec, a.mon);
+    card.appendChild(connectionP);
 
     const hexacoText = HEXACO_TYPE_BLURBS[a.type];
     if (hexacoText){
