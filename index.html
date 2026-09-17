@@ -2451,6 +2451,7 @@ const QUESTIONS = [
     ]
   },
 ];
+// --- Scoring: ceiling normalization, consistency weighting, per-type z-score standardization, calibrated axis tie-break, per-Pokémon axis + hidden types ---
 // --- Type axis positions: [Intensity, Sociability, Structure, Directness, Orientation] ---
 // each axis roughly -2..2: calm<->fierce, solitary<->communal, freeform<->disciplined, subtle<->direct, traditional<->novel
 const TYPE_AXES = {
@@ -2504,27 +2505,40 @@ function scoreTypesDetailed(answers, TYPE_ORDER){
   return {raw, questionsHit};
 }
 
-// Per-type correction factor. Equal ceilings don't guarantee equal odds of ever being
-// assigned -- a type whose signal is spread thin across many answers is far likelier to
-// accumulate a moderate score by chance than one whose signal sits in a few high-weight,
-// low-probability answers, even with an identical ceiling. This factor corrects for that.
-// It was derived empirically, not analytically: simulate many thousands of uniform-random
-// answer sets, measure each type's actual average composite score, nudge its factor toward
-// equalizing that average, and repeat until the correction stops improving. Recompute this
-// the same way if the question set changes meaningfully.
-const TYPE_CALIBRATION = {
-  Fire: 0.9355, Water: 1.0130, Grass: 1.0645, Electric: 1.0216, Ice: 0.9675,
-  Fighting: 1.0274, Poison: 1.0165, Ground: 0.9621, Flying: 0.9658, Psychic: 0.9883,
-  Bug: 0.9999, Rock: 1.0696, Ghost: 1.0185, Dragon: 0.9904, Dark: 0.9511,
-  Steel: 0.9919, Fairy: 1.0021, Normal: 1.0422,
+// Per-type score standardization. A mean-only correction (matching each type's average
+// score) plateaued at roughly a 2.2x gap in real outcome odds, because matching means
+// doesn't match spread -- a type whose score bounces around more widely still wins the
+// "who's highest" comparison more often than a steadier type with the same average, the
+// same reason a streaky player can outscore a consistent one across a season despite an
+// equal average. This is a full z-score standardization instead: each type's raw score is
+// converted to how many standard deviations it sits from *that type's own* mean, then
+// rescaled onto one shared mean/spread, so both the average and the typical spread are
+// matched, not just the average. Mean and std were measured empirically the same way as
+// before -- simulate many thousands of uniform-random answer sets and record each type's
+// actual distribution -- and should be recomputed the same way if the question set changes
+// meaningfully.
+const TYPE_SCORE_STATS = {
+  Fire: { mean: 0.19700, std: 0.04839 }, Water: { mean: 0.17909, std: 0.04682 },
+  Grass: { mean: 0.16937, std: 0.04697 }, Electric: { mean: 0.17770, std: 0.04882 },
+  Ice: { mean: 0.18957, std: 0.04967 }, Fighting: { mean: 0.17623, std: 0.04510 },
+  Poison: { mean: 0.17862, std: 0.04750 }, Ground: { mean: 0.19063, std: 0.04578 },
+  Flying: { mean: 0.18972, std: 0.04837 }, Psychic: { mean: 0.18417, std: 0.04843 },
+  Bug: { mean: 0.18219, std: 0.04615 }, Rock: { mean: 0.16767, std: 0.04204 },
+  Ghost: { mean: 0.17742, std: 0.04625 }, Dragon: { mean: 0.18458, std: 0.04677 },
+  Dark: { mean: 0.19307, std: 0.05014 }, Steel: { mean: 0.18384, std: 0.04463 },
+  Fairy: { mean: 0.18229, std: 0.04357 }, Normal: { mean: 0.17295, std: 0.04460 },
 };
+const SCORE_TARGET_MEAN = 0.18201;
+const SCORE_TARGET_STD = 0.04667;
 function compositeScores(raw, questionsHit, ceiling, opportunity, TYPE_ORDER){
   const composite = {};
   TYPE_ORDER.forEach(t => {
     const norm = ceiling[t] > 0 ? raw[t]/ceiling[t] : 0;
     const breadth = opportunity[t] > 0 ? questionsHit[t].size/opportunity[t] : 0;
-    const calibrated = norm * (TYPE_CALIBRATION[t] || 1);
-    composite[t] = calibrated * (0.65 + 0.35*breadth);
+    const rawComposite = norm * (0.65 + 0.35*breadth);
+    const stats = TYPE_SCORE_STATS[t];
+    const z = stats ? (rawComposite - stats.mean) / stats.std : 0;
+    composite[t] = SCORE_TARGET_MEAN + z * SCORE_TARGET_STD;
   });
   return composite;
 }
@@ -2549,10 +2563,17 @@ function rankTypesV2(composite, personAxisVec, TYPE_ORDER, nSeed){
     axisDist: axisDistance(personAxisVec, TYPE_AXES[t]),
     seedTiebreak: (nSeed*17 + TYPE_ORDER.indexOf(t)*31) % 10000
   }));
+  // Threshold for "close enough that the axis-based tiebreak should decide it" -- calibrated
+  // empirically the same way as the close-call thresholds. A naive 3% relative-margin check
+  // turned out to fire on 26% of results and change the Primary winner 14% of the time --
+  // effectively a second, uncontrolled scoring path, not a rare-tie tiebreaker. Measured the
+  // real distribution of top-2 margins under uniform-random answering and set this to its
+  // 3rd percentile, so it now genuinely fires on close to its intended ~3% of cases.
+  const TIEBREAK_MARGIN = 0.0035;
   arr.sort((a,b) => {
     const denom = Math.max(a.score,b.score,1e-9);
     const rel = Math.abs(a.score-b.score)/denom;
-    if (rel < 0.03){
+    if (rel < TIEBREAK_MARGIN){
       const dd = a.axisDist - b.axisDist;
       if (Math.abs(dd) > 1e-9) return dd;
       return b.seedTiebreak - a.seedTiebreak;
@@ -2835,7 +2856,7 @@ function computeAndShowResults(){
   // percentile of its own boundary's real margins. A single shared 8% threshold, checked
   // directly, turned out to catch 57-80% of results per boundary -- essentially always
   // firing rather than flagging anything unusual.
-  const CLOSE_CALL_THRESHOLDS = [0.0182, 0.0129, 0.0107]; // rank0-1, rank1-2, rank2-3
+  const CLOSE_CALL_THRESHOLDS = [0.0167, 0.0105, 0.0081]; // rank0-1, rank1-2, rank2-3
   const closeCalls = [];
   for (let i = 0; i < 3; i++){
     const a = ranked[i], b = ranked[i+1];
